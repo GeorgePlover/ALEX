@@ -49,7 +49,7 @@ inline void collect_used_nodes(const std::vector<std::vector<FTNode>>& fanout_tr
   }
   std::sort(used_fanout_tree_nodes.begin(), used_fanout_tree_nodes.end(),
             [&](FTNode& left, FTNode& right) {
-              // this is better than comparing boundary locations
+              // this is better than comparing boundary locations ?
               return (left.node_id << (max_level - left.level)) <
                      (right.node_id << (max_level - right.level));
             });
@@ -59,6 +59,7 @@ inline void collect_used_nodes(const std::vector<std::vector<FTNode>>& fanout_tr
 // upwards if doing so decreases the cost.
 // Returns the new best cost.
 // This is a helper function for finding the best fanout in a bottom-up fashion.
+// GP：从某个深度下全部结点的状态开始尝试向上合并结点。（kModelSizeWeight的计算没看懂）
 template <class T, class P>
 static double merge_nodes_upwards(
     int start_level, double best_cost, int num_keys, int total_keys,
@@ -69,7 +70,7 @@ static double merge_nodes_upwards(
     for (int i = 0; i < level_fanout / 2; i++) {
       if (fanout_tree[level][2 * i].use && fanout_tree[level][2 * i + 1].use) {
         int num_node_keys = fanout_tree[level - 1][i].num_keys;
-        if (num_node_keys == 0) {
+        if (num_node_keys == 0) {//如果没有键，直接合并
           fanout_tree[level][2 * i].use = false;
           fanout_tree[level][2 * i + 1].use = false;
           fanout_tree[level - 1][i].use = true;
@@ -103,7 +104,7 @@ static double merge_nodes_upwards(
   return best_cost;
 }
 
-/*** Methods used when bulk loading ***/
+/*** Methods used when bulk loading （批量加载时使用的方法）***/
 
 // Computes one complete level of the fanout tree.
 // For example, level 3 will have 8 tree nodes, which are returned through

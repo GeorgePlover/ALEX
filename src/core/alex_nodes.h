@@ -68,9 +68,9 @@ template <class T, class P, class Alloc = std::allocator<std::pair<T, P>>>
 class AlexModelNode : public AlexNode<T, P> {
  public:
   typedef AlexModelNode<T, P, Alloc> self_type;
-  typedef typename Alloc::template rebind<self_type>::other alloc_type;
+  typedef typename Alloc::template rebind<self_type>::other alloc_type;//模型结点的分配器
   typedef typename Alloc::template rebind<AlexNode<T, P>*>::other
-      pointer_alloc_type;
+      pointer_alloc_type; //结点指针的分配器
 
   const Alloc& allocator_;
 
@@ -90,7 +90,7 @@ class AlexModelNode : public AlexNode<T, P> {
     if (children_ == nullptr) {
       return;
     }
-    pointer_allocator().deallocate(children_, num_children_);
+    pointer_allocator().deallocate(children_, num_children_);//释放孩子指针的空间
   }
 
   AlexModelNode(const self_type& other)
@@ -120,7 +120,7 @@ class AlexModelNode : public AlexNode<T, P> {
     int expansion_factor = 1 << log2_expansion_factor;
     int num_new_children = num_children_ * expansion_factor;
     auto new_children = new (pointer_allocator().allocate(num_new_children))
-        AlexNode<T, P>*[num_new_children];
+        AlexNode<T, P>*[num_new_children];//先创建新的膨胀后的孩子
     int cur = 0;
     while (cur < num_children_) {
       AlexNode<T, P>* cur_child = children_[cur];
@@ -132,10 +132,10 @@ class AlexModelNode : public AlexNode<T, P> {
       cur_child->duplication_factor_ += log2_expansion_factor;
       cur += cur_child_repeats;
     }
-    pointer_allocator().deallocate(children_, num_children_);
+    pointer_allocator().deallocate(children_, num_children_);//删掉原来的
     children_ = new_children;
     num_children_ = num_new_children;
-    this->model_.expand(expansion_factor);
+    this->model_.expand(expansion_factor);//把模型膨胀
     return expansion_factor;
   }
 
@@ -680,9 +680,10 @@ class AlexDataNode : public AlexNode<T, P> {
 
   iterator_type begin() { return iterator_type(this, 0); }
 
-  /*** Cost model ***/
+  /*** Cost model ***/ //GP: 代价模型部分
 
   // Empirical average number of shifts per insert
+  // GP: （实际值）该数据结点中平均每次插入操作的平移次数
   double shifts_per_insert() const {
     if (num_inserts_ == 0) {
       return 0;
@@ -692,6 +693,7 @@ class AlexDataNode : public AlexNode<T, P> {
 
   // Empirical average number of exponential search iterations per operation
   // (either lookup or insert)
+  // GP: （实际值）该数据结点中平均每次(插入+查找)操作的搜索次数
   double exp_search_iterations_per_operation() const {
     if (num_inserts_ + num_lookups_ == 0) {
       return 0;
@@ -700,6 +702,7 @@ class AlexDataNode : public AlexNode<T, P> {
            static_cast<double>(num_inserts_ + num_lookups_);
   }
 
+  // GP：实际代价（基于统计的值）
   double empirical_cost() const {
     if (num_inserts_ + num_lookups_ == 0) {
       return 0;
@@ -711,6 +714,7 @@ class AlexDataNode : public AlexNode<T, P> {
   }
 
   // Empirical fraction of operations (either lookup or insert) that are inserts
+  // GP：插入占（查找+插入）的操作的比例
   double frac_inserts() const {
     int num_ops = num_inserts_ + num_lookups_;
     if (num_ops == 0) {
@@ -719,6 +723,7 @@ class AlexDataNode : public AlexNode<T, P> {
     return static_cast<double>(num_inserts_) / (num_inserts_ + num_lookups_);
   }
 
+  // GP：清空所有计数器
   void reset_stats() {
     num_shifts_ = 0;
     num_exp_search_iterations_ = 0;
@@ -728,6 +733,8 @@ class AlexDataNode : public AlexNode<T, P> {
   }
 
   // Computes the expected cost of the current node
+  // GP：当前结点的期望代价。传参是期望插入操作的比例，默认为0
+  // 用迭代器遍历了结点里面已经有的键，计算出期望的搜索代价和平移代价
   double compute_expected_cost(double frac_inserts = 0) {
     if (num_keys_ == 0) {
       return 0;
@@ -739,7 +746,7 @@ class AlexDataNode : public AlexNode<T, P> {
     for (; !it.is_end(); it++) {
       int predicted_position = std::max(
           0, std::min(data_capacity_ - 1, this->model_.predict(it.key())));
-      search_iters_accumulator.accumulate(it.cur_idx_, predicted_position);
+      search_iters_accumulator.accumulate(it.cur_idx_, predicted_position);//?
       shifts_accumulator.accumulate(it.cur_idx_, predicted_position);
     }
     expected_avg_exp_search_iterations_ = search_iters_accumulator.get_stat();
@@ -753,6 +760,9 @@ class AlexDataNode : public AlexNode<T, P> {
   // Computes the expected cost of a data node constructed using the input dense
   // array of keys
   // Assumes existing_model is trained on the dense array of keys
+  // GP：（初步判断）普通批量加载方法下的期望代价
+  // 传入了数组，以及密度，考虑根据密度稀释数组的方法，辅助函数计算其期望节点代价
+  // 支持指定线性回归模型，也支持训练。线性回归模型也会先根据稀释比例膨胀
   static double compute_expected_cost(
       const V* values, int num_keys, double density,
       double expected_insert_frac,
@@ -809,6 +819,8 @@ class AlexDataNode : public AlexNode<T, P> {
 
   // Helper function for compute_expected_cost
   // Implicitly build the data node in order to collect the stats
+  // GP：传参是一个数组，模拟用它们建一个结点的过程，尽量贴合模型拟合的结果放置数据
+  // 并且计算这种情况下的累计代价。传参会给出一个代价计算器。
   static void build_node_implicit(const V* values, int num_keys,
                                   int data_capacity, StatAccumulator* acc,
                                   const LinearModel<T>* model) {
@@ -841,6 +853,7 @@ class AlexDataNode : public AlexNode<T, P> {
   // Assumes existing_model is trained on the dense array of keys
   // Uses progressive sampling: keep increasing the sample size until the
   // computed stats stop changing drastically
+  // GP：？采样？150行？算法见论文附录A
   static double compute_expected_cost_sampling(
       const V* values, int num_keys, double density,
       double expected_insert_frac,
@@ -1041,6 +1054,9 @@ class AlexDataNode : public AlexNode<T, P> {
   // between left and right in the
   // key/data_slots of an existing node
   // Assumes existing_model is trained on the dense array of keys
+  // GP：计算现有数据结点 [l,r] 范围的key组成新结点的期望代价
+  // density 是新结点的密度设置值
+  // 下面的helpfunction 和上面的类似
   static double compute_expected_cost_from_existing(
       const self_type* node, int left, int right, double density,
       double expected_insert_frac,
@@ -1130,7 +1146,7 @@ class AlexDataNode : public AlexNode<T, P> {
     }
   }
 
-  /*** Bulk loading and model building ***/
+  /*** Bulk loading and model building （批量加载和模型构建）***/
 
   // Initalize key/payload/bitmap arrays and relevant metadata
   void initialize(int num_keys, double density) {
@@ -1152,6 +1168,10 @@ class AlexDataNode : public AlexNode<T, P> {
   }
 
   // Assumes pretrained_model is trained on dense array of keys
+  // GP：假设预训练模型是在密集键数组上训练的
+  // 传入：初始数组，训练模型（可选），要不要用采样优化
+  // 首先根据初始数组和默认占有率创建空间，然后训练模型，再把数据根据模型放入结点
+  // 设置结点的一些元数据，门槛之类的
   void bulk_load(const V values[], int num_keys,
                  const LinearModel<T>* pretrained_model = nullptr,
                  bool train_with_sample = false) {
@@ -1205,7 +1225,7 @@ class AlexDataNode : public AlexNode<T, P> {
 
       for (int j = last_position + 1; j < position; j++) {
         ALEX_DATA_NODE_KEY_AT(j) = values[i].first;
-      }
+      }//？
 
 #if ALEX_DATA_NODE_SEP_ARRAYS
       key_slots_[position] = values[i].first;
@@ -1338,7 +1358,7 @@ class AlexDataNode : public AlexNode<T, P> {
                  static_cast<double>(data_capacity_));
     contraction_threshold_ = data_capacity_ * kMinDensity_;
   }
-
+  //GP：直接密集线性拟合，（key,loc），可以 using sampling
   static void build_model(const V* values, int num_keys, LinearModel<T>* model,
                           bool use_sampling = false) {
     if (use_sampling) {
@@ -1356,6 +1376,7 @@ class AlexDataNode : public AlexNode<T, P> {
   // Uses progressive non-random uniform sampling to build the model
   // Progressively increases sample size until model parameters are relatively
   // stable
+  // 优化：非随机固定采样，当模型参数相对稳定时停止增大采样空间
   static void build_model_sampling(const V* values, int num_keys,
                                    LinearModel<T>* model,
                                    bool verbose = false) {
@@ -1432,6 +1453,7 @@ class AlexDataNode : public AlexNode<T, P> {
   // Unused function: builds a spline model by connecting the smallest and
   // largest points instead of using
   // a linear regression
+  // GP：未使用的函数，直接用最大结点和最小结点之间的连线拟合
   static void build_spline(const V* values, int num_keys,
                            const LinearModel<T>* model) {
     int y_max = num_keys - 1;
@@ -1441,9 +1463,10 @@ class AlexDataNode : public AlexNode<T, P> {
     model->b_ = -1.0 * values[y_min].first * model->a_;
   }
 
-  /*** Lookup ***/
+  /*** Lookup （查找）***/
 
   // Predicts the position of a key using the model
+  // GP：根据该结点的模型，预测 key 的位置
   inline int predict_position(const T& key) const {
     int position = this->model_.predict(key);
     position = std::max<int>(std::min<int>(position, data_capacity_ - 1), 0);
@@ -1452,6 +1475,7 @@ class AlexDataNode : public AlexNode<T, P> {
 
   // Searches for the last non-gap position equal to key
   // If no positions equal to key, returns -1
+  // GP：找到最后一个键值等于key的元素下标。没有的话，返回-1
   int find_key(const T& key) {
     num_lookups_++;
     int predicted_pos = predict_position(key);
@@ -1469,6 +1493,7 @@ class AlexDataNode : public AlexNode<T, P> {
   // Searches for the first non-gap position no less than key
   // Returns position in range [0, data_capacity]
   // Compare with lower_bound()
+  // GP: key的lowerbound 忽视gap
   int find_lower(const T& key) {
     num_lookups_++;
     int predicted_pos = predict_position(key);
@@ -1480,6 +1505,7 @@ class AlexDataNode : public AlexNode<T, P> {
   // Searches for the first non-gap position greater than key
   // Returns position in range [0, data_capacity]
   // Compare with upper_bound()
+  // GP: key的upperbound，忽视gap
   int find_upper(const T& key) {
     num_lookups_++;
     int predicted_pos = predict_position(key);
@@ -1513,6 +1539,8 @@ class AlexDataNode : public AlexNode<T, P> {
   // If no more filled positions, will return data_capacity
   // If exclusive is true, output is at least (pos + 1)
   // If exclusive is false, output can be pos itself
+  // GP：找到下一个非gap的位置，第二个参数表示是否跳过pos本身
+  // 如果没有，将得到结点的最大容量
   int get_next_filled_position(int pos, bool exclusive) const {
     if (exclusive) {
       pos++;
@@ -1543,6 +1571,7 @@ class AlexDataNode : public AlexNode<T, P> {
   // This could be the position for a gap (i.e., its bit in the bitmap is 0)
   // Returns position in range [0, data_capacity]
   // Compare with find_upper()
+  // GP：upperbound，考虑gap
   template <class K>
   int upper_bound(const K& key) {
     num_lookups_++;
@@ -1552,6 +1581,7 @@ class AlexDataNode : public AlexNode<T, P> {
 
   // Searches for the first position greater than key, starting from position m
   // Returns position in range [0, data_capacity]
+  // 先指数膨胀包住界限，然后再二分找界限。（key的gap填充意义在这里显现）
   template <class K>
   inline int exponential_search_upper_bound(int m, const K& key) {
     // Continue doubling the bound until it contains the upper bound. Then use
@@ -1600,6 +1630,7 @@ class AlexDataNode : public AlexNode<T, P> {
   // This could be the position for a gap (i.e., its bit in the bitmap is 0)
   // Returns position in range [0, data_capacity]
   // Compare with find_lower()
+  // GP：lowerbound，考虑gap
   template <class K>
   int lower_bound(const K& key) {
     num_lookups_++;
@@ -1652,19 +1683,21 @@ class AlexDataNode : public AlexNode<T, P> {
     return l;
   }
 
-  /*** Inserts and resizes ***/
+  /*** Inserts and resizes（插入和调整结点大小） ***/
 
   // Whether empirical cost deviates significantly from expected cost
   // Also returns false if empirical cost is sufficiently low and is not worth
   // splitting
+  // GP：判断是否值得分裂
   inline bool significant_cost_deviation() const {
     double emp_cost = empirical_cost();
-    return emp_cost > kNodeLookupsWeight && emp_cost > 1.5 * this->cost_;
+    return emp_cost > kNodeLookupsWeight && emp_cost > 1.5 * this->cost_;//？
   }
 
   // Returns true if cost is catastrophically high and we want to force a split
   // The heuristic for this is if the number of shifts per insert (expected or
   // empirical) is over 100
+  // GP：实际平移量 或者 期望平均平移 超过 100 则需要分裂
   inline bool catastrophic_cost() const {
     return shifts_per_insert() > 100 || expected_avg_shifts_ > 100;
   }
@@ -1703,7 +1736,7 @@ class AlexDataNode : public AlexNode<T, P> {
       num_resizes_++;
     }
 
-    // Insert
+    // Insert ?
     std::pair<int, int> positions = find_insert_position(key);
     int upper_bound_pos = positions.second;
     if (!allow_duplicates && upper_bound_pos > 0 &&
@@ -1734,6 +1767,7 @@ class AlexDataNode : public AlexNode<T, P> {
   }
 
   // Resize the data node to the target density
+  // GP：看起来也可以用来缩小结点
   void resize(double target_density, bool force_retrain = false,
               bool keep_left = false, bool keep_right = false) {
     if (num_keys_ == 0) {
@@ -1756,7 +1790,7 @@ class AlexDataNode : public AlexNode<T, P> {
         V[new_data_capacity];
 #endif
 
-    // Retrain model if the number of keys is sufficiently small (under 50)
+    // Retrain model if the number of keys is sufficiently small (under 50) ?
     if (num_keys_ < 50 || force_retrain) {
       const_iterator_type it(this, 0);
       LinearModelBuilder<T> builder(&(this->model_));
@@ -2106,7 +2140,7 @@ class AlexDataNode : public AlexNode<T, P> {
   }
 #endif
 
-  /*** Deletes ***/
+  /*** Deletes （删除）***/
 
   // Erase the left-most key with the input value
   // Returns the number of keys erased (0 or 1)
