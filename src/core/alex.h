@@ -153,6 +153,7 @@ class Alex {
    * The index can hold keys outside the domain, but lookups/inserts on those
    * keys will be inefficient.
    * If enough keys fall outside the key domain, then we expand the key domain.
+   * GP：看起来是某种缓冲信息
    */
   struct InternalStats {
     T key_domain_min_ = std::numeric_limits<T>::max();
@@ -201,6 +202,7 @@ class Alex {
   // max, expand the domain if the number of OOD keys is greater than the
   // expected number of OOD due to randomness by greater than the tolereance
   // factor.
+  // ?
   static const int kOutOfDomainToleranceFactor = 2;
 
   Compare key_less_ = Compare();
@@ -251,6 +253,7 @@ class Alex {
   // Initializes with range [first, last). The range does not need to be
   // sorted. This creates a temporary copy of the data. If possible, we
   // recommend directly using bulk_load() instead.
+  // GP：迭代器范围构造。先取出排序再批量加载
   template <class InputIterator>
   explicit Alex(InputIterator first, InputIterator last, const Compare& comp,
                 const Alloc& alloc = Alloc())
