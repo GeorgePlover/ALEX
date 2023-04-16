@@ -335,6 +335,7 @@ class Alex {
 
  private:
   // Deep copy of tree starting at given node
+  // GP：深拷贝
   AlexNode<T, P>* copy_tree_recursive(const AlexNode<T, P>* node) {
     if (!node) return nullptr;
     if (node->is_leaf_) {
@@ -399,6 +400,7 @@ class Alex {
 // traversal_path should be empty when calling this function.
 // The returned traversal path begins with superroot and ends with the data
 // node's parent.
+// GP：reading
 #if ALEX_SAFE_LOOKUP
   forceinline data_node_type* get_leaf(
       T key, std::vector<TraversalNode>* traversal_path = nullptr) const {
