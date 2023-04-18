@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
   bool print_batch_stats = get_boolean_flag(flags, "print_batch_stats");
 
   // Read keys from file
+  std::cout << "Loading keys from file...\n";
   auto keys = new KEY_TYPE[total_num_keys];
   if (keys_file_type == "binary") {
     load_binary_data(keys, total_num_keys, keys_file_path);
@@ -55,6 +56,7 @@ int main(int argc, char* argv[]) {
               << std::endl;
     return 1;
   }
+  std::cout << "[Loading keys from file] Done.\n";
 
   // Combine bulk loaded keys with randomly generated payloads
   auto values = new std::pair<KEY_TYPE, PAYLOAD_TYPE>[init_num_keys];
@@ -82,6 +84,9 @@ int main(int argc, char* argv[]) {
   auto workload_start_time = std::chrono::high_resolution_clock::now();
   int batch_no = 0;
   PAYLOAD_TYPE sum = 0;
+
+
+  std::cout << "workload start.\n";
   std::cout << std::scientific;
   std::cout << std::setprecision(3);
   while (true) {
@@ -91,7 +96,7 @@ int main(int argc, char* argv[]) {
     double batch_lookup_time = 0.0;
     if (i > 0) {
       KEY_TYPE* lookup_keys = nullptr;
-      if (lookup_distribution == "uniform") {
+      if (lookup_distribution == "uniform") { 
         lookup_keys = get_search_keys(keys, i, num_lookups_per_batch);
       } else if (lookup_distribution == "zipf") {
         lookup_keys = get_search_keys_zipf(keys, i, num_lookups_per_batch);
