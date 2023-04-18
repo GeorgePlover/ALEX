@@ -402,6 +402,7 @@ class Alex {
 // node's parent.
 // GP：reading
 #if ALEX_SAFE_LOOKUP
+  // 找叶子。在底层的时候为了避免double的误差，做了微调。
   forceinline data_node_type* get_leaf(
       T key, std::vector<TraversalNode>* traversal_path = nullptr) const {
     if (traversal_path) {
@@ -484,6 +485,7 @@ class Alex {
  private:
   // Make a correction to the traversal path to instead point to the leaf node
   // that is to the left or right of the current leaf node.
+  // 修正查询路径，分为向左和向右两种情况
   inline void correct_traversal_path(data_node_type* leaf,
                                      std::vector<TraversalNode>& traversal_path,
                                      bool left) const {
@@ -545,6 +547,7 @@ class Alex {
   }
 
   // Return left-most data node
+  // GP：最靠左的数据结点
   data_node_type* first_data_node() const {
     AlexNode<T, P>* cur = root_node_;
 
@@ -555,6 +558,7 @@ class Alex {
   }
 
   // Return right-most data node
+  // GP：最靠右的数据结点
   data_node_type* last_data_node() const {
     AlexNode<T, P>* cur = root_node_;
 
@@ -590,6 +594,7 @@ class Alex {
 
   // Link the new data nodes together when old data node is replaced by two new
   // data nodes.
+  // GP：在数据结点的链表结构上用两个新的结点替换原来的结点
   void link_data_nodes(const data_node_type* old_leaf,
                        data_node_type* left_leaf, data_node_type* right_leaf) {
     if (old_leaf->prev_leaf_ != nullptr) {
@@ -642,7 +647,7 @@ class Alex {
     return !key_less_(a, b) && !key_less_(b, a);
   }
 
-  /*** Bulk loading ***/
+  /*** Bulk loading（批量加载） ***/
 
  public:
   // values should be the sorted array of key-payload pairs.
@@ -707,7 +712,7 @@ class Alex {
   // Should only be called immediately after bulk loading or when the root node
   // is a data node.
   void update_superroot_key_domain() {
-    assert(stats_.num_inserts == 0 || root_node_->is_leaf_);
+    assert(stats_.num_inserts == 0 || root_node_->is_leaf_);//批量加载结束时，或者根节点是数据结点时
     istats_.key_domain_min_ = get_min_key();
     istats_.key_domain_max_ = get_max_key();
     istats_.num_keys_at_last_right_domain_resize = stats_.num_keys;
@@ -731,11 +736,13 @@ class Alex {
   // node is trained as if it's a model node.
   // data_node_model is what the node's model would be if it were a data node of
   // dense keys.
+  // GP：重要，替换数据结点模型需要修改这部分
   void bulk_load_node(const V values[], int num_keys, AlexNode<T, P>*& node,
                       int total_keys,
                       const LinearModel<T>* data_node_model = nullptr) {
     // Automatically convert to data node when it is impossible to be better
     // than current cost
+    // 条件好的话，直接把这个点转变为数据结点（键值数量不超过最大限制且（代价很小 或 模型斜率为0））
     if (num_keys <= derived_params_.max_data_node_slots *
                         data_node_type::kInitDensity_ &&
         (node->cost_ < kNodeLookupsWeight || node->model_.a_ == 0)) {
@@ -753,6 +760,7 @@ class Alex {
 
     // Use a fanout tree to determine the best way to divide the key space into
     // child nodes
+    // 用fanout tree 处理这个键值空间的拆分方式
     std::vector<fanout_tree::FTNode> used_fanout_tree_nodes;
     std::pair<int, double> best_fanout_stats;
     if (experimental_params_.fanout_selection_method == 0) {
@@ -787,6 +795,7 @@ class Alex {
         // order to satisfy the max node size, so we compute the fanout that
         // would satisfy that condition
         // in expectation
+        // ? 
         best_fanout_tree_depth =
             static_cast<int>(std::log2(static_cast<double>(num_keys) /
                                        derived_params_.max_data_node_slots)) +
@@ -818,7 +827,7 @@ class Alex {
         int repeats = 1 << child_node->duplication_factor_;
         double left_value = static_cast<double>(cur) / fanout;
         double right_value = static_cast<double>(cur + repeats) / fanout;
-        double left_boundary = (left_value - node->model_.b_) / node->model_.a_;
+        double left_boundary = (left_value - node->model_.b_) / node->model_.a_; //计算键值空间左右端点
         double right_boundary =
             (right_value - node->model_.b_) / node->model_.a_;
         child_node->model_.a_ = 1.0 / (right_boundary - left_boundary);
@@ -862,6 +871,8 @@ class Alex {
 
   // Caller needs to set the level, duplication factor, and neighbor pointers of
   // the returned data node
+  // 根据已有的数据结点的[l,r]位置范围的键，构造新的结点。
+  // 能复用模型尽量复用
   data_node_type* bulk_load_leaf_node_from_existing(
       const data_node_type* existing_node, int left, int right,
       bool compute_cost = true, const fanout_tree::FTNode* tree_node = nullptr,
@@ -1131,6 +1142,8 @@ class Alex {
   // not.
   // Insert does not happen if duplicates are not allowed and duplicate is
   // found.
+  // GP：插入结点。对于需要分裂的情况做了分类讨论和分裂操作
+  // 分裂操作均调用函数
   std::pair<Iterator, bool> insert(const T& key, const P& payload) {
     // If enough keys fall outside the key domain, expand the root to expand the
     // key domain
@@ -1159,6 +1172,10 @@ class Alex {
 
     // If no insert, figure out what to do with the data node to decrease the
     // cost
+    // 无法插入有3种情况，包括：
+    // 1.结点代价严重偏差 
+    // 2.shift期望或实际超过100 
+    // 3.结点已满，
     if (fail) {
       std::vector<TraversalNode> traversal_path;
       get_leaf(key, &traversal_path);
@@ -1185,7 +1202,8 @@ class Alex {
           fanout_tree_depth = fanout_tree::find_best_fanout_existing_node<T, P>(
               parent, bucketID, stats_.num_keys, used_fanout_tree_nodes, 2);
         } else if (experimental_params_.splitting_policy_method == 2) {
-          // use full fanout tree to decide fanout
+          // use full fanout tree to decide fanout 用完整的fanout tree，代价看起来较高
+          // 完全依靠fanout tree来分裂，而不是二分裂
           fanout_tree_depth = fanout_tree::find_best_fanout_existing_node<T, P>(
               parent, bucketID, stats_.num_keys, used_fanout_tree_nodes,
               derived_params_.max_fanout);
@@ -1211,12 +1229,12 @@ class Alex {
         } else {
           // split data node: always try to split sideways/upwards, only split
           // downwards if necessary
-          bool reuse_model = (fail == 3);
+          bool reuse_model = (fail == 3);//满而分裂，可以重用模型
           if (experimental_params_.allow_splitting_upwards) {
             // allow splitting upwards
             assert(experimental_params_.splitting_policy_method != 2);
             int stop_propagation_level = best_split_propagation(traversal_path);
-            if (stop_propagation_level <= superroot_->level_) {
+            if (stop_propagation_level <= superroot_->level_) {//如果该传播需要让超级根分裂，那么只好向下分裂
               parent = split_downwards(parent, bucketID, fanout_tree_depth,
                                        used_fanout_tree_nodes, reuse_model);
             } else {
@@ -1297,6 +1315,9 @@ class Alex {
   // When splitting upwards, find best internal node to propagate upwards to.
   // Returns the level of that node. Returns superroot's level if splitting
   // sideways not possible.
+  // GP：stop cost 表示向上传播的最后一个结点的代价（不需要分裂，最多只是扩张处理）
+  // split cost 表示传播经过结点的代价 （需要分裂）
+  // 总而言之，只是用代价模型计算最优的传播终结位置
   int best_split_propagation(const std::vector<TraversalNode>& traversal_path,
                              bool verbose = false) const {
     if (root_node_->is_leaf_) {
@@ -1308,13 +1329,13 @@ class Alex {
     for (const TraversalNode& tn : traversal_path) {
       double stop_cost;
       AlexNode<T, P>* next = tn.node->children_[tn.bucketID];
-      if (next->duplication_factor_ > 0) {
+      if (next->duplication_factor_ > 0) {//如果该节点有冗余指针，代价为0
         stop_cost = 0;
       } else {
         stop_cost =
             tn.node->num_children_ >= derived_params_.max_fanout
-                ? std::numeric_limits<double>::max()
-                : tn.node->num_children_ + SplitDecisionCosts::base_cost;
+                ? std::numeric_limits<double>::max()//如果该内部结点已满，代价为最大值（inf）
+                : tn.node->num_children_ + SplitDecisionCosts::base_cost;//否则为孩子数目+基本代价
       }
       traversal_costs.push_back(
           {stop_cost,
@@ -1356,6 +1377,9 @@ class Alex {
   // Expands the root node (which is a model node).
   // If the root node is at the max node size, then we split the root and create
   // a new root node.
+  // （只在根为内部节点时发生）扩展根结点，分为向左和向右。
+  // 要么膨胀结点，要么分裂，都是加倍的，所以不影响下面的模型结构
+  // 但是要把缓存在两端的外部键值结点迁移
   void expand_root(T key, bool expand_left) {
     auto root = static_cast<model_node_type*>(root_node_);
 
@@ -1568,6 +1592,8 @@ class Alex {
   // the pointers of the parent.
   // If no fanout tree is provided, then splits downward in two. Returns the
   // newly created model node.
+  // GP：把parent的bucketID处的数据结点分裂，并新建一个内部模型结点，扇出分裂后的数据结点
+  // 这个过程中会创建新的数据结点
   model_node_type* split_downwards(
       model_node_type* parent, int bucketID, int fanout_tree_depth,
       std::vector<fanout_tree::FTNode>& used_fanout_tree_nodes,
@@ -1623,6 +1649,7 @@ class Alex {
 
   // Splits data node sideways in the manner determined by the fanout tree.
   // If no fanout tree is provided, then splits sideways in two.
+  // GP：直接在parent层面扩大child数组，新建数据结点并嵌入
   void split_sideways(model_node_type* parent, int bucketID,
                       int fanout_tree_depth,
                       std::vector<fanout_tree::FTNode>& used_fanout_tree_nodes,
@@ -1647,7 +1674,7 @@ class Alex {
         bucketID - (bucketID % repeats);  // first bucket with same child
 
     if (used_fanout_tree_nodes.empty()) {
-      assert(fanout_tree_depth == 1);
+      assert(fanout_tree_depth == 1);//保证是二分裂
       create_two_new_data_nodes(
           leaf, parent,
           std::max(fanout_tree_depth,

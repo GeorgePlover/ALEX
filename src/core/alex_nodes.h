@@ -1689,6 +1689,7 @@ class AlexDataNode : public AlexNode<T, P> {
   // Also returns false if empirical cost is sufficiently low and is not worth
   // splitting
   // GP：判断是否值得分裂
+  // 当实际代价偏差于预估代价1.5倍
   inline bool significant_cost_deviation() const {
     double emp_cost = empirical_cost();
     return emp_cost > kNodeLookupsWeight && emp_cost > 1.5 * this->cost_;//？
