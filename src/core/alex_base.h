@@ -97,6 +97,7 @@ class LinearModelBuilder {
     y_sum_ += static_cast<long double>(y);
     xx_sum_ += static_cast<long double>(x) * x;
     xy_sum_ += static_cast<long double>(x) * y;
+    yy_sum_ += static_cast<long double>(y) * y;
     x_min_ = std::min<T>(x, x_min_);
     x_max_ = std::max<T>(x, x_max_);
     y_min_ = std::min<double>(y, y_min_);
@@ -109,6 +110,7 @@ class LinearModelBuilder {
     y_sum_ -= static_cast<long double>(y);
     xx_sum_ -= static_cast<long double>(x) * x;
     xy_sum_ -= static_cast<long double>(x) * y;
+    yy_sum_ -= static_cast<long double>(y) * y;
     // x_min_ = std::min<T>(x, x_min_);
     // x_max_ = std::max<T>(x, x_max_);
     // y_min_ = std::min<double>(y, y_min_);
@@ -144,12 +146,37 @@ class LinearModelBuilder {
     }
   }
 
+  long double loss(){
+    return 
+    model_->a_*(
+      static_cast<long double>model_->a_*xx_sum_
+      -2.0*(
+        xy_sum_ - static_cast<long double>model_->b_ * x_sum_
+      )
+    )
+    + yy_sum_
+    + model_->b_ * (
+      static_cast<long double>model_->b_ * count_ 
+      - static_cast<long double>2.0 * y_sum_
+    )
+  }
+
+  double build_and_calc_loss(){
+    build();
+    return loss();
+  }
+
+  int count(){
+    return count_;
+  }
+
  private:
   int count_ = 0;
   long double x_sum_ = 0;
   long double y_sum_ = 0;
   long double xx_sum_ = 0;
   long double xy_sum_ = 0;
+  long double yy_sum_ = 0;
   T x_min_ = std::numeric_limits<T>::max();
   T x_max_ = std::numeric_limits<T>::lowest();
   double y_min_ = std::numeric_limits<double>::max();
@@ -157,9 +184,6 @@ class LinearModelBuilder {
 };
 
 /*** Two Piecewise Linear Model and model builder ***/
-
-template <class T>
-class TwoPiecewiseLinearModelBuilder;
 
 template <class T>
 class TwoPiecewiseLinearModel{

@@ -670,7 +670,7 @@ class Alex {
     root_node_->model_.b_ = -1.0 * min_key * root_node_->model_.a_;
 
     // Compute cost of root node
-    LinearModel<T> root_data_node_model;
+    TwoPiecewiseLinearModel<T> root_data_node_model;
     data_node_type::build_model(values, num_keys, &root_data_node_model,
                                 params_.approximate_model_computation);
     DataNodeStats stats;
@@ -739,7 +739,7 @@ class Alex {
   // GP：重要，替换数据结点模型需要修改这部分
   void bulk_load_node(const V values[], int num_keys, AlexNode<T, P>*& node,
                       int total_keys,
-                      const LinearModel<T>* data_node_model = nullptr) {
+                      const TwoPiecewiseLinearModel<T>* data_node_model = nullptr) {
     // Automatically convert to data node when it is impossible to be better
     // than current cost
     // 条件好的话，直接把这个点转变为数据结点（键值数量不超过最大限制且（代价很小 或 模型斜率为0））
