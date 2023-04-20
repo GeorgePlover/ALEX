@@ -103,6 +103,18 @@ class LinearModelBuilder {
     y_max_ = std::max<double>(y, y_max_);
   }
 
+  inline void erase(T x, int y) {
+    count_--;
+    x_sum_ -= static_cast<long double>(x);
+    y_sum_ -= static_cast<long double>(y);
+    xx_sum_ -= static_cast<long double>(x) * x;
+    xy_sum_ -= static_cast<long double>(x) * y;
+    // x_min_ = std::min<T>(x, x_min_);
+    // x_max_ = std::max<T>(x, x_max_);
+    // y_min_ = std::min<double>(y, y_min_);
+    // y_max_ = std::max<double>(y, y_max_);
+  }
+
   void build() {
     if (count_ <= 1) {
       model_->a_ = 0;
@@ -143,6 +155,36 @@ class LinearModelBuilder {
   double y_min_ = std::numeric_limits<double>::max();
   double y_max_ = std::numeric_limits<double>::lowest();
 };
+
+/*** Two Piecewise Linear Model and model builder ***/
+
+template <class T>
+class TwoPiecewiseLinearModelBuilder;
+
+template <class T>
+class TwoPiecewiseLinearModel{
+ public:
+  LinearModel<T> line_l_,line_r_;
+  T mid_;
+ 
+  TwoPiecewiseLinearModel() = default;
+  TwoPiecewiseLinearModel(LinearModel<T> line_l, LinearModel<T> line_r, T mid) : line_l_(line_l), line_r_(line_r), mid_(mid) {}
+  explicit TwoPiecewiseLinearModel(const TwoPiecewiseLinearModel& other) : line_l_(other.line_l_), line_r_(other.line_r_), mid_(other.mid_) {}
+
+  void expand(double expansion_factor) {
+    line_l_.expand(expansion_factor);
+    line_r_.expand(expansion_factor);
+  }
+
+  inline int predict(T key) const {
+    return  key <= mid_ ? line_l_.predict(key) : line_r_.predict(key);
+  }
+
+  inline double predict_double(T key) const {
+    return key <= mid_ ? line_l_.predict_double(key) : line_r_.predict_double(key);
+  }    
+};
+
 
 /*** Comparison ***/
 
