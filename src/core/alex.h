@@ -666,8 +666,11 @@ class Alex {
         new (model_node_allocator().allocate(1)) model_node_type(0, allocator_);
     T min_key = values[0].first;
     T max_key = values[num_keys - 1].first;
-    root_node_->model_.a_ = 1.0 / (max_key - min_key);
-    root_node_->model_.b_ = -1.0 * min_key * root_node_->model_.a_;
+
+    LinearModel<T> root_model_node_model;
+
+    root_model_node_model.a_ = 1.0 / (max_key - min_key);
+    root_model_node_model.b_ = -1.0 * min_key * root_model_node_model.a_;
 
     // Compute cost of root node
     TwoPiecewiseLinearModel<T> root_data_node_model;
@@ -681,6 +684,7 @@ class Alex {
 
     // Recursively bulk load
     bulk_load_node(values, num_keys, root_node_, num_keys,
+                   root_model_node_model,
                    &root_data_node_model);
 
     if (root_node_->is_leaf_) {
@@ -739,13 +743,14 @@ class Alex {
   // GP：重要，替换数据结点模型需要修改这部分
   void bulk_load_node(const V values[], int num_keys, AlexNode<T, P>*& node,
                       int total_keys,
+                      const LinearModel<T> &model_node_model,
                       const TwoPiecewiseLinearModel<T>* data_node_model = nullptr) {
     // Automatically convert to data node when it is impossible to be better
     // than current cost
     // 条件好的话，直接把这个点转变为数据结点（键值数量不超过最大限制且（代价很小 或 模型斜率为0））
     if (num_keys <= derived_params_.max_data_node_slots *
                         data_node_type::kInitDensity_ &&
-        (node->cost_ < kNodeLookupsWeight || node->model_.a_ == 0)) {
+        (node->cost_ < kNodeLookupsWeight || model_node_model.a_ == 0)) {
       stats_.num_data_nodes++;
       auto data_node = new (data_node_allocator().allocate(1))
           data_node_type(node->level_, derived_params_.max_data_node_slots,
@@ -768,13 +773,14 @@ class Alex {
           derived_params_.max_data_node_slots * data_node_type::kInitDensity_);
       best_fanout_stats = fanout_tree::find_best_fanout_bottom_up<T, P>(
           values, num_keys, node, total_keys, used_fanout_tree_nodes,
-          derived_params_.max_fanout, max_data_node_keys,
+          derived_params_.max_fanout, max_data_node_keys, model_node_model,
           params_.expected_insert_frac, params_.approximate_model_computation,
           params_.approximate_cost_computation, key_less_);
     } else if (experimental_params_.fanout_selection_method == 1) {
       best_fanout_stats = fanout_tree::find_best_fanout_top_down<T, P>(
           values, num_keys, node, total_keys, used_fanout_tree_nodes,
-          derived_params_.max_fanout, params_.expected_insert_frac,
+          derived_params_.max_fanout, 
+          params_.expected_insert_frac,model_node_model,
           params_.approximate_model_computation,
           params_.approximate_cost_computation, key_less_);
     }
