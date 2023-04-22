@@ -811,13 +811,13 @@ class Alex {
             derived_params_.max_data_node_slots * data_node_type::kInitDensity_);
         fanout_tree::compute_level<T, P>(
             values, num_keys, node, total_keys, used_fanout_tree_nodes,
-            best_fanout_tree_depth, max_data_node_keys,
+            best_fanout_tree_depth, max_data_node_keys, model_node_model,
             params_.expected_insert_frac, params_.approximate_model_computation,
             params_.approximate_cost_computation);
       }
       int fanout = 1 << best_fanout_tree_depth;
-      model_node->model_.a_ = node->model_.a_ * fanout;
-      model_node->model_.b_ = node->model_.b_ * fanout;
+      model_node->model_.a_ = model_node_model.a_ * fanout;
+      model_node->model_.b_ = model_node_model.b_ * fanout;
       model_node->num_children_ = fanout;
       model_node->children_ =
           new (pointer_allocator().allocate(fanout)) AlexNode<T, P>*[fanout];
@@ -833,16 +833,18 @@ class Alex {
         int repeats = 1 << child_node->duplication_factor_;
         double left_value = static_cast<double>(cur) / fanout;
         double right_value = static_cast<double>(cur + repeats) / fanout;
-        double left_boundary = (left_value - node->model_.b_) / node->model_.a_; //计算键值空间左右端点
+        double left_boundary = (left_value - model_node_model.b_) / model_node_model.a_; //计算键值空间左右端点
         double right_boundary =
-            (right_value - node->model_.b_) / node->model_.a_;
+            (right_value - model_node_model.b_) / model_node_model.a_;
         child_node->model_.a_ = 1.0 / (right_boundary - left_boundary);
         child_node->model_.b_ = -child_node->model_.a_ * left_boundary;
         model_node->children_[cur] = child_node;
-        LinearModel<T> child_data_node_model(tree_node.a, tree_node.b);
+        TwoPiecewiseLinearModel<T> child_data_node_model(
+          {tree_node.l_a, tree_node.l_b}, {tree_node.r_a, tree_node.r_b}, tree_node.mid);
         bulk_load_node(values + tree_node.left_boundary,
                        tree_node.right_boundary - tree_node.left_boundary,
                        model_node->children_[cur], total_keys,
+                       child_node->model_,
                        &child_data_node_model);
         model_node->children_[cur]->duplication_factor_ =
             static_cast<uint8_t>(best_fanout_tree_depth - tree_node.level);
@@ -890,7 +892,7 @@ class Alex {
     if (tree_node) {
       // Use the model and num_keys saved in the tree node so we don't have to
       // recompute it
-      LinearModel<T> precomputed_model(tree_node->a, tree_node->b);
+      TwoPiecewiseLinearModel<T> precomputed_model({tree_node->l_a,tree_node->l_b}, {tree_node->r_a, tree_node->r_b}, tree_node->mid);
       node->bulk_load_from_existing(existing_node, left, right, keep_left,
                                     keep_right, &precomputed_model,
                                     tree_node->num_keys);
@@ -898,8 +900,9 @@ class Alex {
       // Use the model from the existing node
       // Assumes the model is accurate
       int num_actual_keys = existing_node->num_keys_in_range(left, right);
-      LinearModel<T> precomputed_model(existing_node->model_);
-      precomputed_model.b_ -= left;
+      TwoPiecewiseLinearModel<T> precomputed_model(existing_node->model_);
+      precomputed_model.line_l_.b_ -= left;
+      precomputed_model.line_r_.b_ -= left;
       precomputed_model.expand(static_cast<double>(num_actual_keys) /
                                (right - left));
       node->bulk_load_from_existing(existing_node, left, right, keep_left,
