@@ -666,11 +666,14 @@ class Alex {
         new (model_node_allocator().allocate(1)) model_node_type(0, allocator_);
     T min_key = values[0].first;
     T max_key = values[num_keys - 1].first;
-    root_node_->model_.a_ = 1.0 / (max_key - min_key);
-    root_node_->model_.b_ = -1.0 * min_key * root_node_->model_.a_;
+
+    LinearModel<T> root_model_node_model;
+
+    root_model_node_model.a_ = 1.0 / (max_key - min_key);
+    root_model_node_model.b_ = -1.0 * min_key * root_model_node_model.a_;
 
     // Compute cost of root node
-    LinearModel<T> root_data_node_model;
+    TwoPiecewiseLinearModel<T> root_data_node_model;
     data_node_type::build_model(values, num_keys, &root_data_node_model,
                                 params_.approximate_model_computation);
     DataNodeStats stats;
@@ -681,6 +684,7 @@ class Alex {
 
     // Recursively bulk load
     bulk_load_node(values, num_keys, root_node_, num_keys,
+                   root_model_node_model,
                    &root_data_node_model);
 
     if (root_node_->is_leaf_) {
@@ -739,13 +743,14 @@ class Alex {
   // GP：重要，替换数据结点模型需要修改这部分
   void bulk_load_node(const V values[], int num_keys, AlexNode<T, P>*& node,
                       int total_keys,
-                      const LinearModel<T>* data_node_model = nullptr) {
+                      LinearModel<T> &model_node_model,
+                      const TwoPiecewiseLinearModel<T>* data_node_model = nullptr) {
     // Automatically convert to data node when it is impossible to be better
     // than current cost
     // 条件好的话，直接把这个点转变为数据结点（键值数量不超过最大限制且（代价很小 或 模型斜率为0））
     if (num_keys <= derived_params_.max_data_node_slots *
                         data_node_type::kInitDensity_ &&
-        (node->cost_ < kNodeLookupsWeight || node->model_.a_ == 0)) {
+        (node->cost_ < kNodeLookupsWeight || model_node_model.a_ == 0)) {
       stats_.num_data_nodes++;
       auto data_node = new (data_node_allocator().allocate(1))
           data_node_type(node->level_, derived_params_.max_data_node_slots,
@@ -761,20 +766,21 @@ class Alex {
     // Use a fanout tree to determine the best way to divide the key space into
     // child nodes
     // 用fanout tree 处理这个键值空间的拆分方式
-    std::vector<fanout_tree::FTNode> used_fanout_tree_nodes;
+    std::vector<fanout_tree::FTNode<T>> used_fanout_tree_nodes;
     std::pair<int, double> best_fanout_stats;
     if (experimental_params_.fanout_selection_method == 0) {
       int max_data_node_keys = static_cast<int>(
           derived_params_.max_data_node_slots * data_node_type::kInitDensity_);
       best_fanout_stats = fanout_tree::find_best_fanout_bottom_up<T, P>(
           values, num_keys, node, total_keys, used_fanout_tree_nodes,
-          derived_params_.max_fanout, max_data_node_keys,
+          derived_params_.max_fanout, max_data_node_keys, model_node_model,
           params_.expected_insert_frac, params_.approximate_model_computation,
           params_.approximate_cost_computation, key_less_);
     } else if (experimental_params_.fanout_selection_method == 1) {
       best_fanout_stats = fanout_tree::find_best_fanout_top_down<T, P>(
           values, num_keys, node, total_keys, used_fanout_tree_nodes,
-          derived_params_.max_fanout, params_.expected_insert_frac,
+          derived_params_.max_fanout, model_node_model,
+          params_.expected_insert_frac,
           params_.approximate_model_computation,
           params_.approximate_cost_computation, key_less_);
     }
@@ -804,21 +810,21 @@ class Alex {
         int max_data_node_keys = static_cast<int>(
             derived_params_.max_data_node_slots * data_node_type::kInitDensity_);
         fanout_tree::compute_level<T, P>(
-            values, num_keys, node, total_keys, used_fanout_tree_nodes,
-            best_fanout_tree_depth, max_data_node_keys,
+            values, num_keys, total_keys, used_fanout_tree_nodes,
+            best_fanout_tree_depth, max_data_node_keys, model_node_model,
             params_.expected_insert_frac, params_.approximate_model_computation,
             params_.approximate_cost_computation);
       }
       int fanout = 1 << best_fanout_tree_depth;
-      model_node->model_.a_ = node->model_.a_ * fanout;
-      model_node->model_.b_ = node->model_.b_ * fanout;
+      model_node->model_.a_ = model_node_model.a_ * fanout;
+      model_node->model_.b_ = model_node_model.b_ * fanout;
       model_node->num_children_ = fanout;
       model_node->children_ =
           new (pointer_allocator().allocate(fanout)) AlexNode<T, P>*[fanout];
 
       // Instantiate all the child nodes and recurse
       int cur = 0;
-      for (fanout_tree::FTNode& tree_node : used_fanout_tree_nodes) {
+      for (fanout_tree::FTNode<T>& tree_node : used_fanout_tree_nodes) {
         auto child_node = new (model_node_allocator().allocate(1))
             model_node_type(static_cast<short>(node->level_ + 1), allocator_);
         child_node->cost_ = tree_node.cost;
@@ -827,16 +833,18 @@ class Alex {
         int repeats = 1 << child_node->duplication_factor_;
         double left_value = static_cast<double>(cur) / fanout;
         double right_value = static_cast<double>(cur + repeats) / fanout;
-        double left_boundary = (left_value - node->model_.b_) / node->model_.a_; //计算键值空间左右端点
+        double left_boundary = (left_value - model_node_model.b_) / model_node_model.a_; //计算键值空间左右端点
         double right_boundary =
-            (right_value - node->model_.b_) / node->model_.a_;
+            (right_value - model_node_model.b_) / model_node_model.a_;
         child_node->model_.a_ = 1.0 / (right_boundary - left_boundary);
         child_node->model_.b_ = -child_node->model_.a_ * left_boundary;
         model_node->children_[cur] = child_node;
-        LinearModel<T> child_data_node_model(tree_node.a, tree_node.b);
+        TwoPiecewiseLinearModel<T> child_data_node_model(
+          {tree_node.l_a, tree_node.l_b}, {tree_node.r_a, tree_node.r_b}, tree_node.mid);
         bulk_load_node(values + tree_node.left_boundary,
                        tree_node.right_boundary - tree_node.left_boundary,
                        model_node->children_[cur], total_keys,
+                       child_node->model_,
                        &child_data_node_model);
         model_node->children_[cur]->duplication_factor_ =
             static_cast<uint8_t>(best_fanout_tree_depth - tree_node.level);
@@ -875,7 +883,7 @@ class Alex {
   // 能复用模型尽量复用
   data_node_type* bulk_load_leaf_node_from_existing(
       const data_node_type* existing_node, int left, int right,
-      bool compute_cost = true, const fanout_tree::FTNode* tree_node = nullptr,
+      bool compute_cost = true, const fanout_tree::FTNode<T>* tree_node = nullptr,
       bool reuse_model = false, bool keep_left = false,
       bool keep_right = false) {
     auto node = new (data_node_allocator().allocate(1))
@@ -884,7 +892,7 @@ class Alex {
     if (tree_node) {
       // Use the model and num_keys saved in the tree node so we don't have to
       // recompute it
-      LinearModel<T> precomputed_model(tree_node->a, tree_node->b);
+      TwoPiecewiseLinearModel<T> precomputed_model({tree_node->l_a,tree_node->l_b}, {tree_node->r_a, tree_node->r_b}, tree_node->mid);
       node->bulk_load_from_existing(existing_node, left, right, keep_left,
                                     keep_right, &precomputed_model,
                                     tree_node->num_keys);
@@ -892,8 +900,9 @@ class Alex {
       // Use the model from the existing node
       // Assumes the model is accurate
       int num_actual_keys = existing_node->num_keys_in_range(left, right);
-      LinearModel<T> precomputed_model(existing_node->model_);
-      precomputed_model.b_ -= left;
+      TwoPiecewiseLinearModel<T> precomputed_model(existing_node->model_);
+      precomputed_model.line_l_.b_ -= left;
+      precomputed_model.line_r_.b_ -= left;
       precomputed_model.expand(static_cast<double>(num_actual_keys) /
                                (right - left));
       node->bulk_load_from_existing(existing_node, left, right, keep_left,
@@ -1191,7 +1200,7 @@ class Alex {
         int bucketID = parent->model_.predict(key);
         bucketID = std::min<int>(std::max<int>(bucketID, 0),
                                  parent->num_children_ - 1);
-        std::vector<fanout_tree::FTNode> used_fanout_tree_nodes;
+        std::vector<fanout_tree::FTNode<T>> used_fanout_tree_nodes;
 
         int fanout_tree_depth = 1;
         if (experimental_params_.splitting_policy_method == 0 || fail >= 2) {
@@ -1219,7 +1228,7 @@ class Alex {
           leaf->resize(data_node_type::kMinDensity_, true,
                        leaf->is_append_mostly_right(),
                        leaf->is_append_mostly_left());
-          fanout_tree::FTNode& tree_node = used_fanout_tree_nodes[0];
+          fanout_tree::FTNode<T>& tree_node = used_fanout_tree_nodes[0];
           leaf->cost_ = tree_node.cost;
           leaf->expected_avg_exp_search_iterations_ =
               tree_node.expected_avg_search_iterations;
@@ -1596,7 +1605,7 @@ class Alex {
   // 这个过程中会创建新的数据结点
   model_node_type* split_downwards(
       model_node_type* parent, int bucketID, int fanout_tree_depth,
-      std::vector<fanout_tree::FTNode>& used_fanout_tree_nodes,
+      std::vector<fanout_tree::FTNode<T>>& used_fanout_tree_nodes,
       bool reuse_model) {
     auto leaf = static_cast<data_node_type*>(parent->children_[bucketID]);
     stats_.num_downward_splits++;
@@ -1652,7 +1661,7 @@ class Alex {
   // GP：直接在parent层面扩大child数组，新建数据结点并嵌入
   void split_sideways(model_node_type* parent, int bucketID,
                       int fanout_tree_depth,
-                      std::vector<fanout_tree::FTNode>& used_fanout_tree_nodes,
+                      std::vector<fanout_tree::FTNode<T>>& used_fanout_tree_nodes,
                       bool reuse_model) {
     auto leaf = static_cast<data_node_type*>(parent->children_[bucketID]);
     stats_.num_sideways_splits++;
@@ -1766,7 +1775,7 @@ class Alex {
   void create_new_data_nodes(
       const data_node_type* old_node, model_node_type* parent,
       int fanout_tree_depth,
-      std::vector<fanout_tree::FTNode>& used_fanout_tree_nodes,
+      std::vector<fanout_tree::FTNode<T>>& used_fanout_tree_nodes,
       int start_bucketID = 0, int extra_duplication_factor = 0) {
     bool append_mostly_right = old_node->is_append_mostly_right();
     int appending_right_bucketID = std::min<int>(
@@ -1786,7 +1795,7 @@ class Alex {
     // Keys may be re-assigned to an adjacent fanout tree node due to off-by-one
     // errors
     int num_reassigned_keys = 0;
-    for (fanout_tree::FTNode& tree_node : used_fanout_tree_nodes) {
+    for (fanout_tree::FTNode<T>& tree_node : used_fanout_tree_nodes) {
       left_boundary = right_boundary;
       auto duplication_factor = static_cast<uint8_t>(
           fanout_tree_depth - tree_node.level + extra_duplication_factor);

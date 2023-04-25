@@ -48,8 +48,9 @@ class AlexNode {
   // Node's level in the RMI. Root node is level 0
   short level_ = 0;
 
-  // Both model nodes and data nodes nodes use models
-  LinearModel<T> model_;
+  // ~~Both model nodes and data nodes nodes use models~~
+  // model nodes use LinearModel while data nodes use TwoPiecewiseLinearModel
+  // 
 
   // Could be either the expected or empirical cost, depending on how this field
   // is used
@@ -74,6 +75,9 @@ class AlexModelNode : public AlexNode<T, P> {
 
   const Alloc& allocator_;
 
+  // Linear Model of the ModelNode
+  LinearModel<T> model_;
+
   // Number of logical children. Must be a power of 2
   int num_children_ = 0;
 
@@ -96,6 +100,7 @@ class AlexModelNode : public AlexNode<T, P> {
   AlexModelNode(const self_type& other)
       : AlexNode<T, P>(other),
         allocator_(other.allocator_),
+        model_(other.model_), 
         num_children_(other.num_children_) {
     children_ = new (pointer_allocator().allocate(other.num_children_))
         AlexNode<T, P>*[other.num_children_];
@@ -303,6 +308,9 @@ class AlexDataNode : public AlexNode<T, P> {
   const Compare& key_less_;
   const Alloc& allocator_;
 
+  //Two Piecewise Linear Model of the DataNode
+  TwoPiecewiseLinearModel<T> model_;
+
   // Forward declaration
   template <typename node_type = self_type, typename payload_return_type = P,
             typename value_return_type = V>
@@ -410,6 +418,7 @@ class AlexDataNode : public AlexNode<T, P> {
       : AlexNode<T, P>(other),
         key_less_(other.key_less_),
         allocator_(other.allocator_),
+        model_(other.model_),
         next_leaf_(other.next_leaf_),
         prev_leaf_(other.prev_leaf_),
         data_capacity_(other.data_capacity_),
@@ -766,7 +775,7 @@ class AlexDataNode : public AlexNode<T, P> {
   static double compute_expected_cost(
       const V* values, int num_keys, double density,
       double expected_insert_frac,
-      const LinearModel<T>* existing_model = nullptr, bool use_sampling = false,
+      const TwoPiecewiseLinearModel<T>* existing_model = nullptr, bool use_sampling = false,//TODO 探明existing_model 调用来源
       DataNodeStats* stats = nullptr) {
     if (use_sampling) {
       return compute_expected_cost_sampling(values, num_keys, density,
@@ -782,12 +791,13 @@ class AlexDataNode : public AlexNode<T, P> {
         std::max(static_cast<int>(num_keys / density), num_keys + 1);
 
     // Compute what the node's model would be
-    LinearModel<T> model;
+    TwoPiecewiseLinearModel<T> model;
     if (existing_model == nullptr) {
       build_model(values, num_keys, &model);
     } else {
-      model.a_ = existing_model->a_;
-      model.b_ = existing_model->b_;
+      model.line_l_ = existing_model->line_l_;
+      model.line_r_ = existing_model->line_r_;
+      model.mid_ = existing_model->mid_;
     }
     model.expand(static_cast<double>(data_capacity) / num_keys);
 
@@ -823,7 +833,7 @@ class AlexDataNode : public AlexNode<T, P> {
   // 并且计算这种情况下的累计代价。传参会给出一个代价计算器。
   static void build_node_implicit(const V* values, int num_keys,
                                   int data_capacity, StatAccumulator* acc,
-                                  const LinearModel<T>* model) {
+                                  const TwoPiecewiseLinearModel<T>* model) {
     int last_position = -1;
     int keys_remaining = num_keys;
     for (int i = 0; i < num_keys; i++) {
@@ -857,7 +867,7 @@ class AlexDataNode : public AlexNode<T, P> {
   static double compute_expected_cost_sampling(
       const V* values, int num_keys, double density,
       double expected_insert_frac,
-      const LinearModel<T>* existing_model = nullptr,
+      const TwoPiecewiseLinearModel<T>* existing_model = nullptr,
       DataNodeStats* stats = nullptr) {
     const static int min_sample_size = 25;
 
@@ -886,12 +896,13 @@ class AlexDataNode : public AlexNode<T, P> {
                                    stats);
     }
 
-    LinearModel<T> model;  // trained for full dense array
+    TwoPiecewiseLinearModel<T> model;  // trained for full dense array
     if (existing_model == nullptr) {
       build_model(values, num_keys, &model);
     } else {
-      model.a_ = existing_model->a_;
-      model.b_ = existing_model->b_;
+      model.line_l_ = existing_model->line_l_;
+      model.line_r_ = existing_model->line_r_;
+      model.mid_ = existing_model->mid_;
     }
 
     // Compute initial sample size and step size
@@ -928,7 +939,7 @@ class AlexDataNode : public AlexNode<T, P> {
     while (true) {
       int sample_data_capacity = std::max(
           static_cast<int>(sample_num_keys / density), sample_num_keys + 1);
-      LinearModel<T> sample_model(model.a_, model.b_);
+      TwoPiecewiseLinearModel<T> sample_model(model.line_l_, model.line_r_, model.mid_);
       sample_model.expand(static_cast<double>(sample_data_capacity) / num_keys);
 
       // Compute stats using the sample
@@ -1023,7 +1034,7 @@ class AlexDataNode : public AlexNode<T, P> {
                                            int sample_num_keys,
                                            int sample_data_capacity,
                                            int step_size, StatAccumulator* ent,
-                                           const LinearModel<T>* sample_model) {
+                                           const TwoPiecewiseLinearModel<T>* sample_model) {
     int last_position = -1;
     int sample_keys_remaining = sample_num_keys;
     for (int i = 0; i < num_keys; i += step_size) {
@@ -1060,24 +1071,47 @@ class AlexDataNode : public AlexNode<T, P> {
   static double compute_expected_cost_from_existing(
       const self_type* node, int left, int right, double density,
       double expected_insert_frac,
-      const LinearModel<T>* existing_model = nullptr,
+      const TwoPiecewiseLinearModel<T>* existing_model = nullptr,
       DataNodeStats* stats = nullptr) {
     assert(left >= 0 && right <= node->data_capacity_);
 
-    LinearModel<T> model;
+    TwoPiecewiseLinearModel<T> model;
     int num_actual_keys = 0;
     if (existing_model == nullptr) {
+      LinearModel<T> model_l,model_r;
+
       const_iterator_type it(node, left);
-      LinearModelBuilder<T> builder(&model);
+      LinearModelBuilder<T> builder_suf(&model_r);
       for (int i = 0; it.cur_idx_ < right && !it.is_end(); it++, i++) {
-        builder.add(it.key(), i);
+        builder_suf.add(it.key(), i);
         num_actual_keys++;
       }
-      builder.build();
+
+      long double model_loss = builder_suf.build_and_calc_loss();
+      model.line_l_= model_r;//it is right 
+      model.line_r_= model_r;
+      model.mid_ = builder_suf.x_max();
+
+      const_iterator_type it2(node, left);
+      LinearModelBuilder<T> builder_pre(&model_l);
+      // enum the piecewise point
+      for (int i = 0; it2.cur_idx_ < right && !it2.is_end(); it2++, i++) {
+        builder_pre.add(it2.key(), i);
+        builder_suf.erase(it2.key(), i);
+        long double tmp;
+        if(builder_suf.count() && (tmp = builder_suf.build_and_calc_loss() + builder_pre.build_and_calc_loss()) < model_loss ){
+          model_loss = tmp;
+          model.line_l_ = model_l;
+          model.line_r_ = model_r;
+          model.mid_ = it2.key();
+        }
+      }
+
     } else {
       num_actual_keys = node->num_keys_in_range(left, right);
-      model.a_ = existing_model->a_;
-      model.b_ = existing_model->b_;
+      model.line_l_ = existing_model->line_l_;
+      model.line_r_ = existing_model->line_r_;
+      model.mid_ = existing_model->mid_;
     }
 
     if (num_actual_keys == 0) {
@@ -1121,7 +1155,7 @@ class AlexDataNode : public AlexNode<T, P> {
                                                 int right, int num_actual_keys,
                                                 int data_capacity,
                                                 StatAccumulator* acc,
-                                                const LinearModel<T>* model) {
+                                                const TwoPiecewiseLinearModel<T>* model) {
     int last_position = -1;
     int keys_remaining = num_actual_keys;
     const_iterator_type it(node, left);
@@ -1173,7 +1207,7 @@ class AlexDataNode : public AlexNode<T, P> {
   // 首先根据初始数组和默认占有率创建空间，然后训练模型，再把数据根据模型放入结点
   // 设置结点的一些元数据，门槛之类的
   void bulk_load(const V values[], int num_keys,
-                 const LinearModel<T>* pretrained_model = nullptr,
+                 const TwoPiecewiseLinearModel<T>* pretrained_model = nullptr,
                  bool train_with_sample = false) {
     initialize(num_keys, kInitDensity_);
 
@@ -1188,8 +1222,9 @@ class AlexDataNode : public AlexNode<T, P> {
 
     // Build model
     if (pretrained_model != nullptr) {
-      this->model_.a_ = pretrained_model->a_;
-      this->model_.b_ = pretrained_model->b_;
+      this->model_.line_l_ = pretrained_model->line_l_;
+      this->model_.line_r_ = pretrained_model->line_r_;
+      this->model_.mid_ = pretrained_model->mid_;
     } else {
       build_model(values, num_keys, &(this->model_), train_with_sample);
     }
@@ -1260,24 +1295,48 @@ class AlexDataNode : public AlexNode<T, P> {
   void bulk_load_from_existing(
       const self_type* node, int left, int right, bool keep_left = false,
       bool keep_right = false,
-      const LinearModel<T>* precomputed_model = nullptr,
+      const TwoPiecewiseLinearModel<T>* precomputed_model = nullptr,
       int precomputed_num_actual_keys = -1) {
     assert(left >= 0 && right <= node->data_capacity_);
 
     // Build model
     int num_actual_keys = 0;
     if (precomputed_model == nullptr || precomputed_num_actual_keys == -1) {
+      
+      LinearModel<T> model_l,model_r;
+
       const_iterator_type it(node, left);
-      LinearModelBuilder<T> builder(&(this->model_));
+      LinearModelBuilder<T> builder_suf(&model_r);
       for (int i = 0; it.cur_idx_ < right && !it.is_end(); it++, i++) {
-        builder.add(it.key(), i);
+        builder_suf.add(it.key(), i);
         num_actual_keys++;
       }
-      builder.build();
+
+      long double model_loss = builder_suf.build_and_calc_loss();
+      this->model_.line_l_= model_r;//it is right 
+      this->model_.line_r_= model_r;
+      this->model_.mid_ = builder_suf.x_max();
+
+      const_iterator_type it2(node, left);
+      LinearModelBuilder<T> builder_pre(&model_l);
+      // enum the piecewise point
+      for (int i = 0; it2.cur_idx_ < right && !it2.is_end(); it2++, i++) {
+        builder_pre.add(it2.key(), i);
+        builder_suf.erase(it2.key(), i);
+        long double tmp;
+        if(builder_suf.count() && (tmp = builder_suf.build_and_calc_loss() + builder_pre.build_and_calc_loss()) < model_loss ){
+          model_loss = tmp;
+          this->model_.line_l_ = model_l;
+          this->model_.line_r_ = model_r;
+          this->model_.mid_ = it2.key();
+        }
+      }
+
     } else {
       num_actual_keys = precomputed_num_actual_keys;
-      this->model_.a_ = precomputed_model->a_;
-      this->model_.b_ = precomputed_model->b_;
+      this->model_.line_l_ = precomputed_model->line_l_;
+      this->model_.line_r_ = precomputed_model->line_r_;
+      this->model_.mid_ = precomputed_model->mid_;
     }
 
     initialize(num_actual_keys, kMinDensity_);
@@ -1295,7 +1354,9 @@ class AlexDataNode : public AlexNode<T, P> {
       this->model_.expand((num_actual_keys / kMaxDensity_) / num_keys_);
     } else if (keep_right) {
       this->model_.expand((num_actual_keys / kMaxDensity_) / num_keys_);
-      this->model_.b_ += (data_capacity_ - (num_actual_keys / kMaxDensity_));
+      double tmp = (data_capacity_ - (num_actual_keys / kMaxDensity_));
+      this->model_.line_l_.b_ += tmp;
+      this->model_.line_r_.b_ += tmp;
     } else {
       this->model_.expand(static_cast<double>(data_capacity_) / num_keys_);
     }
@@ -1359,18 +1420,43 @@ class AlexDataNode : public AlexNode<T, P> {
     contraction_threshold_ = data_capacity_ * kMinDensity_;
   }
   //GP：直接密集线性拟合，（key,loc），可以 using sampling
-  static void build_model(const V* values, int num_keys, LinearModel<T>* model,
+  static void build_model(const V* values, int num_keys, TwoPiecewiseLinearModel<T>* model,
                           bool use_sampling = false) {
     if (use_sampling) {
-      build_model_sampling(values, num_keys, model);
+      // 暂时还没看懂采样代码，先接上
+      //FIXME
+      LinearModel<T> tmp;
+      build_model_sampling(values, num_keys, &tmp);
+      model->line_r_ = model->line_l_ = tmp;
       return;
     }
 
-    LinearModelBuilder<T> builder(model);
+    LinearModel<T> model_l,model_r;
+
+    LinearModelBuilder<T> builder_suf(&model_r);
     for (int i = 0; i < num_keys; i++) {
-      builder.add(values[i].first, i);
+      builder_suf.add(values[i].first, i);
     }
-    builder.build();
+
+    long double model_loss = builder_suf.build_and_calc_loss();
+    model->line_l_= model_r;//it is right 
+    model->line_r_= model_r;
+    model->mid_ = builder_suf.x_max();
+
+    LinearModelBuilder<T> builder_pre(&model_l);
+    // enum the piecewise point
+    for (int i = 0; i < num_keys-1; i++) {
+      builder_pre.add(values[i].first, i);
+      builder_suf.erase(values[i].first, i);
+      long double tmp;
+      if((tmp = builder_suf.build_and_calc_loss() + builder_pre.build_and_calc_loss()) < model_loss ){
+        model_loss = tmp;
+        model->line_l_ = model_l;
+        model->line_r_ = model_r;
+        model->mid_ = values[i].first;
+      }
+    }
+
   }
 
   // Uses progressive non-random uniform sampling to build the model
@@ -1391,7 +1477,7 @@ class AlexDataNode : public AlexNode<T, P> {
 
     // If the number of keys is sufficiently small, we do not sample
     if (num_keys <= sample_size_lower_bound * sample_size_multiplier) {
-      build_model(values, num_keys, model, false);
+      //build_model(values, num_keys, model, false); //FIXME
       return;
     }
 
@@ -1793,23 +1879,48 @@ class AlexDataNode : public AlexNode<T, P> {
 
     // Retrain model if the number of keys is sufficiently small (under 50) ?
     if (num_keys_ < 50 || force_retrain) {
+      
+      LinearModel<T> model_l,model_r;
+
       const_iterator_type it(this, 0);
-      LinearModelBuilder<T> builder(&(this->model_));
+      LinearModelBuilder<T> builder_suf(&model_r);
       for (int i = 0; it.cur_idx_ < data_capacity_ && !it.is_end(); it++, i++) {
-        builder.add(it.key(), i);
+        builder_suf.add(it.key(), i);
       }
-      builder.build();
+
+      long double model_loss = builder_suf.build_and_calc_loss();
+      this->model_.line_l_= model_r;//it is right 
+      this->model_.line_r_= model_r;
+      this->model_.mid_ = builder_suf.x_max();
+
+      const_iterator_type it2(this, 0);
+      LinearModelBuilder<T> builder_pre(&model_l);
+      // enum the piecewise point
+      for (int i = 0; it2.cur_idx_ < data_capacity_ && !it2.is_end(); it2++, i++) {
+        builder_pre.add(it2.key(), i);
+        builder_suf.erase(it2.key(), i);
+        long double tmp;
+        if(builder_suf.count() && (tmp = builder_suf.build_and_calc_loss() + builder_pre.build_and_calc_loss()) < model_loss ){
+          model_loss = tmp;
+          this->model_.line_l_ = model_l;
+          this->model_.line_r_ = model_r;
+          this->model_.mid_ = it2.key();
+        }
+      }
+
       if (keep_left) {
         this->model_.expand(static_cast<double>(data_capacity_) / num_keys_);
       } else if (keep_right) {
         this->model_.expand(static_cast<double>(data_capacity_) / num_keys_);
-        this->model_.b_ += (new_data_capacity - data_capacity_);
+        this->model_.line_l_.b_ += (new_data_capacity - data_capacity_);
+        this->model_.line_r_.b_ += (new_data_capacity - data_capacity_);
       } else {
         this->model_.expand(static_cast<double>(new_data_capacity) / num_keys_);
       }
     } else {
       if (keep_right) {
-        this->model_.b_ += (new_data_capacity - data_capacity_);
+        this->model_.line_l_.b_ += (new_data_capacity - data_capacity_);
+        this->model_.line_r_.b_ += (new_data_capacity - data_capacity_);
       } else if (!keep_left) {
         this->model_.expand(static_cast<double>(new_data_capacity) /
                             data_capacity_);
