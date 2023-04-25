@@ -1,0 +1,13 @@
+found flag keys_file = ../test_data_used_in_paper/longlat-200M.bin.data
+found flag keys_file_type = binary
+found flag init_num_keys = 1000000
+found flag total_num_keys = 200000000
+found flag batch_size = 20
+found flag insert_frac = 0.00
+found flag lookup_distribution = zipf
+found flag time_limit = 1
+Loading keys from file...
+[Loading keys from file] Done.
+workload start.
+Cumulative stats: 21111464 batches, 422229280 ops (422229280 lookups, 0 inserts)
+	cumulative throughput:	2.226e+07 lookups/sec,	0.000e+00 inserts/sec,	2.178e+07 ops/sec

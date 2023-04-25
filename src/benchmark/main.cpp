@@ -31,6 +31,27 @@
  * --time_limit             time limit, in minutes
  * --print_batch_stats      whether to output stats for each batch
  */
+
+void out_stats(alex::Alex<KEY_TYPE, PAYLOAD_TYPE> &index){
+  std::cout<<"STQTS:\n";
+  std::cout<<"num_keys: "<<index.stats_.num_keys<<"\n";
+  std::cout<<"num_model_nodes: "<<index.stats_.num_model_nodes<<"\n";
+  std::cout<<"num_data_nodes: "<<index.stats_.num_data_nodes<<"\n";
+  std::cout<<"num_expand_and_scales: "<<index.stats_.num_expand_and_scales<<"\n";
+  std::cout<<"num_expand_and_retrains: "<<index.stats_.num_expand_and_retrains<<"\n";
+  std::cout<<"num_downward_splits: "<<index.stats_.num_downward_splits<<"\n";
+  std::cout<<"num_sideways_splits: "<<index.stats_.num_sideways_splits<<"\n";
+  std::cout<<"num_downward_split_keys: "<<index.stats_.num_downward_split_keys<<"\n";
+  std::cout<<"num_model_node_expansion_pointers: "<<index.stats_.num_model_node_expansion_pointers<<"\n";
+  std::cout<<"num_model_node_split_pointers: "<<index.stats_.num_model_node_split_pointers<<"\n";
+  std::cout<<"num_node_lookups: "<<index.stats_.num_node_lookups<<"\n";
+  std::cout<<"num_lookups: "<<index.stats_.num_lookups<<"\n";
+  std::cout<<"num_inserts: "<<index.stats_.num_inserts<<"\n";
+  std::cout<<"splitting_time: "<<index.stats_.splitting_time<<"\n";
+  std::cout<<"cost_computation_time: "<<index.stats_.cost_computation_time<<"\n\n";
+}
+
+
 int main(int argc, char* argv[]) {
   auto flags = parse_flags(argc, argv);
   std::string keys_file_path = get_required(flags, "keys_file");
@@ -85,6 +106,8 @@ int main(int argc, char* argv[]) {
   int batch_no = 0;
   PAYLOAD_TYPE sum = 0;
 
+
+  out_stats(index);
 
   std::cout << "workload start.\n";
   std::cout << std::scientific;

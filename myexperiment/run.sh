@@ -15,7 +15,7 @@
 --init_num_keys=1000000 \
 --total_num_keys=200000000 \
 --batch_size=20 \
---insert_frac=0.05 \
+--insert_frac=0.00 \
 --lookup_distribution=zipf \
---time_limit=1
+--time_limit=1\
 
