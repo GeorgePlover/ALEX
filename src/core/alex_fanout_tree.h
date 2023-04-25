@@ -17,6 +17,7 @@ namespace alex {
 namespace fanout_tree {
 
 // A node of the fanout tree
+template <class T>
 struct FTNode {
   int level;    // level in the fanout tree
   int node_id;  // node's position within its level
@@ -29,7 +30,7 @@ struct FTNode {
   double expected_avg_shifts = 0;
   double l_a = 0;  // linear model slope
   double l_b = 0;  // linear model intercept
-  double mid = 0;
+  T mid = 0;
   double r_a = 0;  // linear model slope
   double r_b = 0;  // linear model intercept
   int num_keys = 0;
@@ -38,20 +39,21 @@ struct FTNode {
 /*** Helpers ***/
 
 // Collect all used fanout tree nodes and sort them
-inline void collect_used_nodes(const std::vector<std::vector<FTNode>>& fanout_tree,
+template <class T>
+inline void collect_used_nodes(const std::vector<std::vector<FTNode<T>>>& fanout_tree,
                         int max_level,
-                        std::vector<FTNode>& used_fanout_tree_nodes) {
+                        std::vector<FTNode<T>>& used_fanout_tree_nodes) {
   max_level = std::min(max_level, static_cast<int>(fanout_tree.size()) - 1);
   for (int i = 0; i <= max_level; i++) {
     auto& level = fanout_tree[i];
-    for (const FTNode& tree_node : level) {
+    for (const FTNode<T>& tree_node : level) {
       if (tree_node.use) {
         used_fanout_tree_nodes.push_back(tree_node);
       }
     }
   }
   std::sort(used_fanout_tree_nodes.begin(), used_fanout_tree_nodes.end(),
-            [&](FTNode& left, FTNode& right) {
+            [&](FTNode<T>& left, FTNode<T>& right) {
               // this is better than comparing boundary locations ?
               return (left.node_id << (max_level - left.level)) <
                      (right.node_id << (max_level - right.level));
@@ -66,7 +68,7 @@ inline void collect_used_nodes(const std::vector<std::vector<FTNode>>& fanout_tr
 template <class T, class P>
 static double merge_nodes_upwards(
     int start_level, double best_cost, int num_keys, int total_keys,
-    std::vector<std::vector<FTNode>>& fanout_tree) {
+    std::vector<std::vector<FTNode<T>>>& fanout_tree) {
   for (int level = start_level; level >= 1; level--) {
     int level_fanout = 1 << level;
     bool at_least_one_merge = false;
@@ -116,8 +118,8 @@ static double merge_nodes_upwards(
 // 1).
 template <class T, class P, class Compare = std::less<T>>
 double compute_level(const std::pair<T, P> values[], int num_keys,
-                     const AlexNode<T, P>* node, int total_keys,
-                     std::vector<FTNode>& used_fanout_tree_nodes, int level,
+                      int total_keys,
+                     std::vector<FTNode<T>>& used_fanout_tree_nodes, int level,
                      int max_data_node_keys,
                      LinearModel<T> &model_node_model,
                      double expected_insert_frac = 0,
@@ -193,7 +195,7 @@ double compute_level(const std::pair<T, P> values[], int num_keys,
 template <class T, class P, class Compare = std::less<T>>
 std::pair<int, double> find_best_fanout_bottom_up(
     const std::pair<T, P> values[], int num_keys, const AlexNode<T, P>* node,
-    int total_keys, std::vector<FTNode>& used_fanout_tree_nodes, int max_fanout,
+    int total_keys, std::vector<FTNode<T>>& used_fanout_tree_nodes, int max_fanout,
     int max_data_node_keys, 
     LinearModel<T> &model_node_model,
     double expected_insert_frac = 0,
@@ -204,15 +206,15 @@ std::pair<int, double> find_best_fanout_bottom_up(
   int best_level = 0;
   double best_cost = node->cost_ + kNodeLookupsWeight;
   std::vector<double> fanout_costs;
-  std::vector<std::vector<FTNode>> fanout_tree;
+  std::vector<std::vector<FTNode<T>>> fanout_tree;
   fanout_costs.push_back(best_cost);
   fanout_tree.push_back(
       {{0, 0, best_cost, 0, num_keys, false, 0, 0, 0, 0, 0, 0, 0, num_keys}});
   for (int fanout = 2, fanout_tree_level = 1; fanout <= max_fanout;
        fanout *= 2, fanout_tree_level++) {
-    std::vector<FTNode> new_level;
+    std::vector<FTNode<T>> new_level;
     double cost = compute_level<T, P, Compare>(
-        values, num_keys, node, total_keys, new_level, fanout_tree_level,
+        values, num_keys, total_keys, new_level, fanout_tree_level,
         max_data_node_keys, model_node_model,
         expected_insert_frac, approximate_model_computation,
         approximate_cost_computation, key_less);
@@ -230,7 +232,7 @@ std::pair<int, double> find_best_fanout_bottom_up(
     }
     fanout_tree.push_back(new_level);
   }
-  for (FTNode& tree_node : fanout_tree[best_level]) {
+  for (FTNode<T>& tree_node : fanout_tree[best_level]) {
     tree_node.use = true;
   }
 
@@ -251,13 +253,13 @@ std::pair<int, double> find_best_fanout_bottom_up(
 template <class T, class P, class Compare = std::less<T>>
 std::pair<int, double> find_best_fanout_top_down(
     const std::pair<T, P> values[], int num_keys, const AlexNode<T, P>* node,
-    int total_keys, std::vector<FTNode>& used_fanout_tree_nodes, int max_fanout,
+    int total_keys, std::vector<FTNode<T>>& used_fanout_tree_nodes, int max_fanout,
     LinearModel<T> &model_node_model,
     double expected_insert_frac = 0, bool approximate_model_computation = true,
     bool approximate_cost_computation = false, Compare key_less = Compare()) {
   // Grow the fanout tree top-down breadth-first, each node independently
   // instead of complete levels at a time
-  std::vector<std::vector<FTNode>> fanout_tree;
+  std::vector<std::vector<FTNode<T>>> fanout_tree;
   double overall_cost = node->cost_ + kNodeLookupsWeight;
   fanout_tree.push_back({{0, 0, overall_cost, 0, num_keys, true}});
   int fanout_tree_level = 1;
@@ -265,17 +267,17 @@ std::pair<int, double> find_best_fanout_top_down(
   while (true) {
     if (fanout > max_fanout) {
       // use nodes up to the previous level
-      for (FTNode& tree_node : fanout_tree[fanout_tree_level - 1]) {
+      for (FTNode<T>& tree_node : fanout_tree[fanout_tree_level - 1]) {
         tree_node.use = true;
       }
       fanout_tree_level--;
       break;
     }
-    std::vector<FTNode> new_level;
+    std::vector<FTNode<T>> new_level;
     double a = model_node_model.a_ * fanout;
     double b = model_node_model.b_ * fanout;
     double cost_savings_from_level = 0;
-    for (FTNode& tree_node : fanout_tree[fanout_tree_level - 1]) {
+    for (FTNode<T>& tree_node : fanout_tree[fanout_tree_level - 1]) {
       if (tree_node.left_boundary == tree_node.right_boundary) {
         continue;
       }
@@ -334,7 +336,7 @@ std::pair<int, double> find_best_fanout_top_down(
                         total_keys / num_keys;  // cost of 2X pointers
     if (level_cost > cost_savings_from_level) {
       // use nodes up to the previous level
-      for (FTNode& tree_node : fanout_tree[fanout_tree_level - 1]) {
+      for (FTNode<T>& tree_node : fanout_tree[fanout_tree_level - 1]) {
         tree_node.use = true;
       }
       fanout_tree_level--;
@@ -359,7 +361,7 @@ std::pair<int, double> find_best_fanout_top_down(
 template <class T, class P>
 int find_best_fanout_existing_node(const AlexModelNode<T, P>* parent,
                                    int bucketID, int total_keys,
-                                   std::vector<FTNode>& used_fanout_tree_nodes,
+                                   std::vector<FTNode<T>>& used_fanout_tree_nodes,
                                    int max_fanout) {
   // Repeatedly add levels to the fanout tree until the overall cost of each
   // level starts to increase
@@ -368,7 +370,7 @@ int find_best_fanout_existing_node(const AlexModelNode<T, P>* parent,
   int best_level = 0;
   double best_cost = std::numeric_limits<double>::max();
   std::vector<double> fanout_costs;
-  std::vector<std::vector<FTNode>> fanout_tree;
+  std::vector<std::vector<FTNode<T>>> fanout_tree;
 
   int repeats = 1 << node->duplication_factor_;
   int start_bucketID =
@@ -385,7 +387,7 @@ int find_best_fanout_existing_node(const AlexModelNode<T, P>* parent,
 
   for (int fanout = 1, fanout_tree_level = 0; fanout <= max_fanout;
        fanout *= 2, fanout_tree_level++) {
-    std::vector<FTNode> new_level;
+    std::vector<FTNode<T>> new_level;
     double cost = 0.0;
     double a = base_model.a_ * fanout;
     double b = base_model.b_ * fanout;
@@ -413,7 +415,7 @@ int find_best_fanout_existing_node(const AlexModelNode<T, P>* parent,
       long double model_loss = builder_suf.build_and_calc_loss();
       model.line_l_= model_r;//it is right 
       model.line_r_= model_r;
-      model.mid_ = builder_suf.x_max_;
+      model.mid_ = builder_suf.x_max();
 
       typename AlexDataNode<T, P>::const_iterator_type it2(node, left_boundary);
       LinearModelBuilder<T> builder_pre(&model_l);
@@ -424,9 +426,9 @@ int find_best_fanout_existing_node(const AlexModelNode<T, P>* parent,
         long double tmp;
         if(builder_suf.count() && (tmp = builder_suf.build_and_calc_loss() + builder_pre.build_and_calc_loss()) < model_loss){
           model_loss = tmp;
-          model_.line_l_ = model_l;
-          model_.line_r_ = model_r;
-          model_.mid_ = it2.key();
+          model.line_l_ = model_l;
+          model.line_r_ = model_r;
+          model.mid_ = it2.key();
         }
       }
 
@@ -468,7 +470,7 @@ int find_best_fanout_existing_node(const AlexModelNode<T, P>* parent,
     }
     fanout_tree.push_back(new_level);
   }
-  for (FTNode& tree_node : fanout_tree[best_level]) {
+  for (FTNode<T>& tree_node : fanout_tree[best_level]) {
     tree_node.use = true;
   }
 

@@ -68,7 +68,11 @@ class LinearModel {
 
   LinearModel() = default;
   LinearModel(double a, double b) : a_(a), b_(b) {}
-  explicit LinearModel(const LinearModel& other) : a_(other.a_), b_(other.b_) {}
+  LinearModel(const LinearModel& other) : a_(other.a_), b_(other.b_) {}
+  LinearModel& operator= (const LinearModel& other){
+    this->a_ = other.a_;this->b_=other.b_;
+    return *this;
+  }
 
   void expand(double expansion_factor) {
     a_ *= expansion_factor;
@@ -149,16 +153,16 @@ class LinearModelBuilder {
   long double loss(){
     return 
     model_->a_*(
-      static_cast<long double>model_->a_*xx_sum_
+      static_cast<long double>(model_->a_)*xx_sum_
       -2.0*(
-        xy_sum_ - static_cast<long double>model_->b_ * x_sum_
+        xy_sum_ - static_cast<long double>(model_->b_) * x_sum_
       )
     )
     + yy_sum_
     + model_->b_ * (
-      static_cast<long double>model_->b_ * count_ 
-      - static_cast<long double>2.0 * y_sum_
-    )
+      static_cast<long double>(model_->b_) * count_ 
+      - static_cast<long double>(2.0) * y_sum_
+    );
   }
 
   double build_and_calc_loss(){
@@ -168,6 +172,10 @@ class LinearModelBuilder {
 
   int count(){
     return count_;
+  }
+
+  T x_max(){
+    return x_max_;
   }
 
  private:

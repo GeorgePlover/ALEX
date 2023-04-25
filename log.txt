@@ -1,0 +1,4 @@
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/nsh/ALEX/build
+[ 16%] Building CXX object CMakeFiles/test_alex.dir/test/unittest_main.cpp.o

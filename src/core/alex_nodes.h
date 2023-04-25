@@ -1088,7 +1088,7 @@ class AlexDataNode : public AlexNode<T, P> {
       long double model_loss = builder_suf.build_and_calc_loss();
       model.line_l_= model_r;//it is right 
       model.line_r_= model_r;
-      model.mid_ = builder_suf.x_max_;
+      model.mid_ = builder_suf.x_max();
 
       const_iterator_type it2(node, left);
       LinearModelBuilder<T> builder_pre(&model_l);
@@ -1313,7 +1313,7 @@ class AlexDataNode : public AlexNode<T, P> {
       long double model_loss = builder_suf.build_and_calc_loss();
       this->model_.line_l_= model_r;//it is right 
       this->model_.line_r_= model_r;
-      this->model_.mid_ = builder_suf.x_max_;
+      this->model_.mid_ = builder_suf.x_max();
 
       const_iterator_type it2(node, left);
       LinearModelBuilder<T> builder_pre(&model_l);
@@ -1439,7 +1439,7 @@ class AlexDataNode : public AlexNode<T, P> {
     long double model_loss = builder_suf.build_and_calc_loss();
     model->line_l_= model_r;//it is right 
     model->line_r_= model_r;
-    model->mid_ = builder_suf.x_max_;
+    model->mid_ = builder_suf.x_max();
 
     LinearModelBuilder<T> builder_pre(&model_l);
     // enum the piecewise point
@@ -1889,7 +1889,7 @@ class AlexDataNode : public AlexNode<T, P> {
       long double model_loss = builder_suf.build_and_calc_loss();
       this->model_.line_l_= model_r;//it is right 
       this->model_.line_r_= model_r;
-      this->model_.mid_ = builder_suf.x_max_;
+      this->model_.mid_ = builder_suf.x_max();
 
       const_iterator_type it2(this, 0);
       LinearModelBuilder<T> builder_pre(&model_l);
