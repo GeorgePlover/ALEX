@@ -100,6 +100,7 @@ class AlexModelNode : public AlexNode<T, P> {
   AlexModelNode(const self_type& other)
       : AlexNode<T, P>(other),
         allocator_(other.allocator_),
+        model_(other.model_), 
         num_children_(other.num_children_) {
     children_ = new (pointer_allocator().allocate(other.num_children_))
         AlexNode<T, P>*[other.num_children_];
@@ -417,6 +418,7 @@ class AlexDataNode : public AlexNode<T, P> {
       : AlexNode<T, P>(other),
         key_less_(other.key_less_),
         allocator_(other.allocator_),
+        model_(other.model_),
         next_leaf_(other.next_leaf_),
         prev_leaf_(other.prev_leaf_),
         data_capacity_(other.data_capacity_),

@@ -53,6 +53,7 @@ TEST_CASE("TestConstructors") {
   CHECK_NE(index.root_node_, index3.root_node_);
 
   for (int i = 0; i < 500; i++) {
+    std::cout<<i<<"\n";
     auto it2 = index2.find(values[i].first);
     CHECK(!it2.is_end());
     CHECK_EQ(values[i].first, it2.key());
