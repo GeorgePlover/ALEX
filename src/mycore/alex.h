@@ -90,7 +90,7 @@ class Alex {
     int max_node_size = 1 << 24;
     // Approximate model computation: bulk load faster by using sampling to
     // train models
-    bool approximate_model_computation = true;
+    bool approximate_model_computation = false;
     // Approximate cost computation: bulk load faster by using sampling to
     // compute cost
     bool approximate_cost_computation = false;
