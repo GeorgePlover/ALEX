@@ -12,10 +12,10 @@
 ../build/benchmark \
 --keys_file=../test_data_used_in_paper/longlat-200M.bin.data \
 --keys_file_type=binary \
---init_num_keys=1000000 \
+--init_num_keys=10000000 \
 --total_num_keys=200000000 \
---batch_size=20 \
+--batch_size=2000 \
 --insert_frac=0.00 \
 --lookup_distribution=zipf \
---time_limit=1\
+--time_limit=1
 

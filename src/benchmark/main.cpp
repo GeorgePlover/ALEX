@@ -33,7 +33,7 @@
  */
 
 void out_stats(alex::Alex<KEY_TYPE, PAYLOAD_TYPE> &index){
-  std::cout<<"STQTS:\n";
+  std::cout<<"STATS:\n";
   std::cout<<"num_keys: "<<index.stats_.num_keys<<"\n";
   std::cout<<"num_model_nodes: "<<index.stats_.num_model_nodes<<"\n";
   std::cout<<"num_data_nodes: "<<index.stats_.num_data_nodes<<"\n";
@@ -51,6 +51,89 @@ void out_stats(alex::Alex<KEY_TYPE, PAYLOAD_TYPE> &index){
   std::cout<<"cost_computation_time: "<<index.stats_.cost_computation_time<<"\n\n";
 }
 
+/* 
+Nodes:
+  node_size()
+  level_
+ModelNodes:
+  num_children_
+DataNodes:
+  data_capacity_  
+  num_keys_
+  num_shifts_
+  num_exp_search_iterations_
+  num_lookups_
+  num_inserts_
+  num_resizes_
+  expected_avg_exp_search_iterations_
+  expected_avg_shifts_
+*/
+std::multiset<short> set_level;
+std::multiset<long long> set_data_node_size;
+std::multiset<long long> set_model_node_size; 
+std::multiset<int> set_num_children; // 模型结点的孩子个数
+std::multiset<int> set_num_keys; //数据节点的键值个数
+std::multiset<double> set_shifts_per_ins; // 每个插入的平均平移次数
+std::multiset<double> set_iter_per_op; // 每个操作的平均搜索迭代次数
+// std::multiset<double> set_p_shifts; // 真实移动代价/期望代价
+// std::multiset<double> set_p_iter; //真实搜索迭代代价/期望代价
+std::multiset<int> set_num_lookups; 
+std::multiset<int> set_num_inserts;
+std::multiset<int> set_num_shifts; 
+std::multiset<int> set_num_iter;  
+
+void Trave_Nodes(alex::AlexNode<KEY_TYPE, PAYLOAD_TYPE> *rt){
+  set_level.insert(rt->level_);
+  if(rt->is_leaf_){
+    auto data_node = static_cast<alex::AlexDataNode<KEY_TYPE, PAYLOAD_TYPE>*>(rt);
+    set_data_node_size.insert(data_node->node_size()+data_node->data_size());
+    set_num_keys.insert(data_node->num_keys_);
+
+    set_num_lookups.insert(data_node->num_lookups_); set_num_inserts.insert(data_node->num_inserts_);
+    set_num_shifts.insert(data_node->num_shifts_); set_num_iter.insert(data_node->num_exp_search_iterations_);  
+
+    set_shifts_per_ins.insert(static_cast<double> (data_node->num_shifts_)/data_node->num_inserts_);
+    set_iter_per_op.insert(static_cast<double> (
+      data_node->num_exp_search_iterations_)/(data_node->num_inserts_+data_node->num_lookups_));
+  }
+  else{
+    auto model_node = static_cast<alex::AlexModelNode<KEY_TYPE, PAYLOAD_TYPE>*>(rt);
+
+    set_model_node_size.insert(model_node->node_size());
+    set_num_children.insert(model_node->num_children_);
+
+    for(int i=0;i<model_node->num_children_;i++){
+      if(model_node->children_[i] == nullptr)continue;
+      Trave_Nodes(model_node->children_[i]);
+      i+=(1<<(model_node->children_[i]->duplication_factor_))-1;
+    }
+  }
+}
+
+void get_info(alex::Alex<KEY_TYPE,PAYLOAD_TYPE> &index){
+  set_level.clear();set_data_node_size.clear();set_model_node_size.clear();
+  set_num_children.clear();set_num_keys.clear();set_shifts_per_ins.clear();
+  set_num_lookups.clear(); set_num_inserts.clear();
+  set_num_shifts.clear(); set_num_iter.clear();  
+
+  Trave_Nodes(index.root_node_);
+
+  long long total_size=0;
+  long long total_lookups=0,total_inserts=0,total_exp_iter=0,total_shifts=0;
+  for(auto &i: set_data_node_size)total_size+=i;
+  for(auto &i: set_model_node_size)total_size+=i;
+  for(auto &i: set_num_lookups)total_lookups+=i;
+  for(auto &i: set_num_inserts)total_inserts+=i;
+  for(auto &i: set_num_iter)total_exp_iter+=i;
+  for(auto &i: set_num_shifts)total_shifts+=i;
+
+  std::cout<<"Total size: "<< static_cast<double>(total_size)/(1024*1024) << "MB\n";
+  std::cout<<"Max level: "<< *(--set_level.end()) << "\n";
+  std::cout<<"Max model node size: "<< *(--set_model_node_size.end()) << "B\n";
+  std::cout<<"Max data node size: "<< *(--set_data_node_size.end()) << "B\n";
+  std::cout<<"Total exp-search iterations: "<< total_exp_iter << "\n";
+  std::cout<<"Total shifts: "<< total_shifts << "\n";
+}
 
 int main(int argc, char* argv[]) {
   auto flags = parse_flags(argc, argv);
@@ -209,6 +292,8 @@ int main(int argc, char* argv[]) {
             << " inserts/sec,\t"
             << cumulative_operations / cumulative_time * 1e9 << " ops/sec"
             << std::endl;
+
+  get_info(index);
 
   delete[] keys;
   delete[] values;
