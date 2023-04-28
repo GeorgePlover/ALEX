@@ -4,7 +4,7 @@
 /*
  * Simple benchmark that runs a mixture of point lookups and inserts on ALEX.
  */
-
+#define DEBUG
 #include "../core/alex.h"
 
 #include <iomanip>
@@ -13,7 +13,7 @@
 #include "utils.h"
 
 // Modify these if running your own workload
-#define KEY_TYPE int64_t
+#define KEY_TYPE double
 #define PAYLOAD_TYPE double
 
 /*
@@ -129,7 +129,7 @@ void get_info(alex::Alex<KEY_TYPE,PAYLOAD_TYPE> &index){
 
   std::cout<<"Total size: "<< static_cast<double>(total_size)/(1024*1024) << "MB\n";
   std::cout<<"Max level: "<< *(--set_level.end()) << "\n";
-  std::cout<<"Max model node size: "<< *(--set_model_node_size.end()) << "B\n";
+  if(set_model_node_size.size())std::cout<<"Max model node size: "<< *(--set_model_node_size.end()) << "B\n";
   std::cout<<"Max data node size: "<< *(--set_data_node_size.end()) << "B\n";
   std::cout<<"Total exp-search iterations: "<< total_exp_iter << "\n";
   std::cout<<"Total shifts: "<< total_shifts << "\n";
@@ -197,7 +197,9 @@ int main(int argc, char* argv[]) {
   std::cout << std::setprecision(3);
   while (true) {
     batch_no++;
-
+#ifdef DEBUG
+    std::cout<<"batch_number: "<<batch_no<<std::endl;
+#endif
     // Do lookups
     double batch_lookup_time = 0.0;
     if (i > 0) {
@@ -211,6 +213,9 @@ int main(int argc, char* argv[]) {
                   << std::endl;
         return 1;
       }
+#ifdef DEBUG
+    std::cout<<"lookup: start"<<std::endl;
+#endif
       auto lookups_start_time = std::chrono::high_resolution_clock::now();
       for (int j = 0; j < num_lookups_per_batch; j++) {
         KEY_TYPE key = lookup_keys[j];
@@ -219,6 +224,9 @@ int main(int argc, char* argv[]) {
           sum += *payload;
         }
       }
+#ifdef DEBUG
+    std::cout<<"lookup: done"<<std::endl;
+#endif
       auto lookups_end_time = std::chrono::high_resolution_clock::now();
       batch_lookup_time = std::chrono::duration_cast<std::chrono::nanoseconds>(
                               lookups_end_time - lookups_start_time)
@@ -229,6 +237,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Do inserts
+#ifdef DEBUG
+    std::cout<<"insert: start"<<std::endl;
+#endif
     int num_actual_inserts =
         std::min(num_inserts_per_batch, total_num_keys - i);
     int num_keys_after_batch = i + num_actual_inserts;
@@ -265,6 +276,9 @@ int main(int argc, char* argv[]) {
                 << cumulative_operations / cumulative_time * 1e9 << " ops/sec"
                 << std::endl;
     }
+#ifdef DEBUG
+    std::cout<<"insert: done"<<std::endl;
+#endif
 
     // Check for workload end conditions
     if (num_actual_inserts < num_inserts_per_batch) {
@@ -293,7 +307,7 @@ int main(int argc, char* argv[]) {
             << cumulative_operations / cumulative_time * 1e9 << " ops/sec"
             << std::endl;
 
-  get_info(index);
+  //get_info(index);
 
   delete[] keys;
   delete[] values;
