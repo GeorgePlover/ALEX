@@ -3,7 +3,7 @@ found flag keys_file_type = binary
 found flag init_num_keys = 5000000
 found flag total_num_keys = 200000000
 found flag batch_size = 2000
-found flag insert_frac = 0.00
+found flag insert_frac = 0.95
 found flag lookup_distribution = zipf
 found flag time_limit = 1
 Loading keys from file...
@@ -26,11 +26,11 @@ splitting_time: 0
 cost_computation_time: 0
 
 workload start.
-Cumulative stats: 394817 batches, 789634000 ops (789634000 lookups, 0 inserts)
-	cumulative throughput:	2.711e+07 lookups/sec,	0.000e+00 inserts/sec,	2.710e+07 ops/sec
-Total size: 1.098e+02MB
+Cumulative stats: 102632 batches, 205263200 ops (10263200 lookups, 195000000 inserts)
+	cumulative throughput:	1.819e+07 lookups/sec,	4.165e+06 inserts/sec,	4.332e+06 ops/sec
+Total size: 4.624e+03MB
 Max level: 1
-Max model node size: 128B
-Max data node size: 14401472B
-Total exp-search iterations: 650632993
-Total shifts: 0
+Max model node size: 8256B
+Max data node size: 9483432B
+Total exp-search iterations: 12551531
+Total shifts: 17323477

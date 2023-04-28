@@ -6,6 +6,7 @@
 # ycsb-200M
 
 name=$1
+total_key=$2
 
 mkdir ${name}
 
@@ -15,7 +16,7 @@ echo bulk_5e6
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=5000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.00 \
 --lookup_distribution=zipf \
@@ -28,7 +29,7 @@ echo 1
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=5000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.05 \
 --lookup_distribution=zipf \
@@ -41,7 +42,7 @@ echo 2
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=5000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.25 \
 --lookup_distribution=zipf \
@@ -54,7 +55,7 @@ echo 3
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=5000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.50 \
 --lookup_distribution=zipf \
@@ -67,7 +68,7 @@ echo 4
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=5000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.75 \
 --lookup_distribution=zipf \
@@ -80,7 +81,7 @@ echo 5
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=5000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.95 \
 --lookup_distribution=zipf \
@@ -93,7 +94,7 @@ echo 6
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=5000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=1.00 \
 --lookup_distribution=zipf \
@@ -108,7 +109,7 @@ echo bulk_1e7
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=10000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.00 \
 --lookup_distribution=zipf \
@@ -121,7 +122,7 @@ echo 1
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=10000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.05 \
 --lookup_distribution=zipf \
@@ -134,7 +135,7 @@ echo 2
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=10000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.25 \
 --lookup_distribution=zipf \
@@ -147,7 +148,7 @@ echo 3
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=10000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.50 \
 --lookup_distribution=zipf \
@@ -160,7 +161,7 @@ echo 4
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=10000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.75 \
 --lookup_distribution=zipf \
@@ -173,7 +174,7 @@ echo 5
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=10000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.95 \
 --lookup_distribution=zipf \
@@ -186,7 +187,7 @@ echo 6
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=10000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=1.00 \
 --lookup_distribution=zipf \
@@ -201,7 +202,7 @@ echo bulk_2e7
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=20000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.00 \
 --lookup_distribution=zipf \
@@ -214,7 +215,7 @@ echo 1
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=20000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.05 \
 --lookup_distribution=zipf \
@@ -227,7 +228,7 @@ echo 2
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=20000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.25 \
 --lookup_distribution=zipf \
@@ -240,7 +241,7 @@ echo 3
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=20000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.50 \
 --lookup_distribution=zipf \
@@ -253,7 +254,7 @@ echo 4
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=20000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.75 \
 --lookup_distribution=zipf \
@@ -266,7 +267,7 @@ echo 5
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=20000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.95 \
 --lookup_distribution=zipf \
@@ -279,7 +280,7 @@ echo 6
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
 --init_num_keys=20000000 \
---total_num_keys=200000000 \
+--total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=1.00 \
 --lookup_distribution=zipf \

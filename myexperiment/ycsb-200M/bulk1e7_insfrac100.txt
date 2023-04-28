@@ -1,17 +1,17 @@
 found flag keys_file = ../test_data_used_in_paper/ycsb-200M.bin.data
 found flag keys_file_type = binary
-found flag init_num_keys = 5000000
+found flag init_num_keys = 10000000
 found flag total_num_keys = 200000000
 found flag batch_size = 2000
-found flag insert_frac = 0.00
+found flag insert_frac = 1.00
 found flag lookup_distribution = zipf
 found flag time_limit = 1
 Loading keys from file...
 [Loading keys from file] Done.
 STATS:
-num_keys: 5000000
+num_keys: 10000000
 num_model_nodes: 1
-num_data_nodes: 9
+num_data_nodes: 17
 num_expand_and_scales: 0
 num_expand_and_retrains: 0
 num_downward_splits: 0
@@ -26,11 +26,11 @@ splitting_time: 0
 cost_computation_time: 0
 
 workload start.
-Cumulative stats: 394817 batches, 789634000 ops (789634000 lookups, 0 inserts)
-	cumulative throughput:	2.711e+07 lookups/sec,	0.000e+00 inserts/sec,	2.710e+07 ops/sec
-Total size: 1.098e+02MB
+Cumulative stats: 95001 batches, 190000000 ops (0 lookups, 190000000 inserts)
+	cumulative throughput:	0.000e+00 lookups/sec,	4.527e+06 inserts/sec,	4.527e+06 ops/sec
+Total size: 3.901e+03MB
 Max level: 1
-Max model node size: 128B
-Max data node size: 14401472B
-Total exp-search iterations: 650632993
-Total shifts: 0
+Max model node size: 2112B
+Max data node size: 15997496B
+Total exp-search iterations: 58806419
+Total shifts: 204824967
