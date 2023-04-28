@@ -4,7 +4,7 @@
 /*
  * Simple benchmark that runs a mixture of point lookups and inserts on ALEX.
  */
-#define DEBUG
+
 #include "../core/alex.h"
 
 #include <iomanip>
@@ -152,9 +152,9 @@ int main(int argc, char* argv[]) {
   std::cout << "Loading keys from file...\n";
   auto keys = new KEY_TYPE[total_num_keys];
   if (keys_file_type == "binary") {
-    assert(load_binary_data(keys, total_num_keys, keys_file_path));
+    load_binary_data(keys, total_num_keys, keys_file_path);
   } else if (keys_file_type == "text") {
-    assert(load_text_data(keys, total_num_keys, keys_file_path));
+    load_text_data(keys, total_num_keys, keys_file_path);
   } else {
     std::cerr << "--keys_file_type must be either 'binary' or 'text'"
               << std::endl;
@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
             << cumulative_operations / cumulative_time * 1e9 << " ops/sec"
             << std::endl;
 
-  //get_info(index);
+  get_info(index);
 
   delete[] keys;
   delete[] values;

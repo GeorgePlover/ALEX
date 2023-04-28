@@ -10,8 +10,8 @@ Loading keys from file...
 [Loading keys from file] Done.
 STATS:
 num_keys: 5000000
-num_model_nodes: 1733
-num_data_nodes: 30917
+num_model_nodes: 887
+num_data_nodes: 21007
 num_expand_and_scales: 0
 num_expand_and_retrains: 0
 num_downward_splits: 0
@@ -26,11 +26,11 @@ splitting_time: 0
 cost_computation_time: 0
 
 workload start.
-Cumulative stats: 289304 batches, 578608000 ops (578608000 lookups, 0 inserts)
-	cumulative throughput:	1.745e+07 lookups/sec,	0.000e+00 inserts/sec,	1.745e+07 ops/sec
-Total size: 1.182e+02MB
+Cumulative stats: 287262 batches, 574524000 ops (574524000 lookups, 0 inserts)
+	cumulative throughput:	1.687e+07 lookups/sec,	0.000e+00 inserts/sec,	1.686e+07 ops/sec
+Total size: 1.156e+02MB
 Max level: 3
-Max model node size: 2097216B
-Max data node size: 474880B
-Total exp-search iterations: 798962290
+Max model node size: 1048640B
+Max data node size: 444160B
+Total exp-search iterations: 717824811
 Total shifts: 0
