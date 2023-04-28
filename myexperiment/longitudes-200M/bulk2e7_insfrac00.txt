@@ -26,5 +26,11 @@ splitting_time: 0
 cost_computation_time: 0
 
 workload start.
-Cumulative stats: 274679 batches, 549358000 ops (549358000 lookups, 0 inserts)
-	cumulative throughput:	1.827e+07 lookups/sec,	0.000e+00 inserts/sec,	1.827e+07 ops/sec
+Cumulative stats: 283844 batches, 567688000 ops (567688000 lookups, 0 inserts)
+	cumulative throughput:	1.887e+07 lookups/sec,	0.000e+00 inserts/sec,	1.886e+07 ops/sec
+Total size: 4.404e+02MB
+Max level: 2
+Max model node size: 65600B
+Max data node size: 1521440B
+Total exp-search iterations: 561488900
+Total shifts: 0

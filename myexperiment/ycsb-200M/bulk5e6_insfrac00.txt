@@ -1,8 +1,8 @@
 found flag keys_file = ../test_data_used_in_paper/ycsb-200M.bin.data
-found flag keys_file_type = text
+found flag keys_file_type = binary
 found flag init_num_keys = 5000000
 found flag total_num_keys = 200000000
 found flag batch_size = 2000
 found flag insert_frac = 0.00
 found flag lookup_distribution = zipf
-found flag time_limit = 1
+found flag time_limit = 0.1
