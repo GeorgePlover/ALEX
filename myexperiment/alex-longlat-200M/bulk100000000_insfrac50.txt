@@ -1,0 +1,36 @@
+found flag keys_file = ../test_data_used_in_paper/longlat-200M.bin.data
+found flag keys_file_type = binary
+found flag init_num_keys = 100000000
+found flag total_num_keys = 200000000
+found flag batch_size = 2000
+found flag insert_frac = 0.50
+found flag lookup_distribution = zipf
+found flag time_limit = 1
+Loading keys from file...
+[Loading keys from file] Done.
+workload start.
+Cumulative stats: 90307 batches, 180614000 ops (90307000 lookups, 90307000 inserts)
+	cumulative throughput:	6.879e+06 lookups/sec,	2.319e+06 inserts/sec,	3.468e+06 ops/sec
+STATS:
+num_keys: 190307000
+num_model_nodes: 13310
+num_data_nodes: 123904
+num_expand_and_scales: 3193
+num_expand_and_retrains: 6947
+num_downward_splits: 4075
+num_sideways_splits: 35384
+num_downward_split_keys: 11027673
+num_model_node_expansion_pointers: 3928732
+num_model_node_split_pointers: 0
+num_node_lookups: 616641657
+num_lookups: 90307000
+num_inserts: 90307000
+splitting_time: 1.410e+09
+cost_computation_time: 3.460e+08
+
+Total size: 4.038e+03MB
+Max level: 7
+Max model node size: 16777280B
+Max data node size: 4338776B
+Total exp-search iterations: 224161548
+Total shifts: 1832901399

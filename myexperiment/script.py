@@ -82,7 +82,7 @@ def Draw(Records: list , dataset: str, bulknum: int, insfrac: list, outfile = "c
 
 file_path = "/home/nsh/ALEX/myexperiment/"
 CoreNames = ["my", "alex"]
-BulkNum = ["5e6", "1e7", "2e7"]
+BulkNum = ["5e6", "1e7", "2e7", "100000000"]
 InsertFrac = ["00", "05", "25", "50", "75", "95", "100"]
 
 Records = []

@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
   PAYLOAD_TYPE sum = 0;
 
 
-  out_stats(index);
+  
 
   std::cout << "workload start.\n";
   std::cout << std::scientific;
@@ -306,7 +306,8 @@ int main(int argc, char* argv[]) {
             << " inserts/sec,\t"
             << cumulative_operations / cumulative_time * 1e9 << " ops/sec"
             << std::endl;
-
+  
+  out_stats(index);
   get_info(index);
 
   delete[] keys;
