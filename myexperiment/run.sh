@@ -7,7 +7,17 @@
 
 name=$1
 total_key=$2
-init_key=$3 
+init_key=$3
+int_key=${init_key} 
+if [ "$init_key" == "5e6" ]; then
+    int_key=5000000
+fi
+if [ "$init_key" == "1e7" ]; then
+    int_key=10000000
+fi
+if [ "$init_key" == "2e7" ]; then
+    int_key=20000000
+fi
 
 mkdir ${name}
 
@@ -16,7 +26,7 @@ echo bulk_${init_key}
 ../build/benchmark \
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
---init_num_keys="${init_key}" \
+--init_num_keys="${int_key}" \
 --total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.00 \
@@ -29,7 +39,7 @@ echo 1
 ../build/benchmark \
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
---init_num_keys="${init_key}" \
+--init_num_keys="${int_key}" \
 --total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.05 \
@@ -42,7 +52,7 @@ echo 2
 ../build/benchmark \
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
---init_num_keys="${init_key}" \
+--init_num_keys="${int_key}" \
 --total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.25 \
@@ -55,7 +65,7 @@ echo 3
 ../build/benchmark \
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
---init_num_keys="${init_key}" \
+--init_num_keys="${int_key}" \
 --total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.50 \
@@ -68,7 +78,7 @@ echo 4
 ../build/benchmark \
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
---init_num_keys="${init_key}" \
+--init_num_keys="${int_key}" \
 --total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.75 \
@@ -81,7 +91,7 @@ echo 5
 ../build/benchmark \
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
---init_num_keys="${init_key}" \
+--init_num_keys="${int_key}" \
 --total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=0.95 \
@@ -94,7 +104,7 @@ echo 6
 ../build/benchmark \
 --keys_file=../test_data_used_in_paper/"${name}".bin.data \
 --keys_file_type=binary \
---init_num_keys="${init_key}" \
+--init_num_keys="${int_key}" \
 --total_num_keys="${total_key}" \
 --batch_size=2000 \
 --insert_frac=1.00 \
