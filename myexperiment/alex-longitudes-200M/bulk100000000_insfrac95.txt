@@ -10,27 +10,27 @@ Loading keys from file...
 [Loading keys from file] Done.
 workload start.
 Cumulative stats: 52632 batches, 105263200 ops (5263200 lookups, 100000000 inserts)
-	cumulative throughput:	1.146e+07 lookups/sec,	3.538e+06 inserts/sec,	3.664e+06 ops/sec
+	cumulative throughput:	1.503e+07 lookups/sec,	3.929e+06 inserts/sec,	4.080e+06 ops/sec
 STATS:
 num_keys: 200000000
-num_model_nodes: 330
-num_data_nodes: 11670
-num_expand_and_scales: 31
-num_expand_and_retrains: 292
+num_model_nodes: 58
+num_data_nodes: 14401
+num_expand_and_scales: 40
+num_expand_and_retrains: 204
 num_downward_splits: 0
-num_sideways_splits: 421
+num_sideways_splits: 179
 num_downward_split_keys: 0
-num_model_node_expansion_pointers: 722132
+num_model_node_expansion_pointers: 229432
 num_model_node_split_pointers: 0
-num_node_lookups: 319121193
+num_node_lookups: 105659739
 num_lookups: 5263200
 num_inserts: 100000000
-splitting_time: 4.073e+08
-cost_computation_time: 2.759e+08
+splitting_time: 7.118e+07
+cost_computation_time: 4.708e+07
 
-Total size: 3.951e+03MB
-Max level: 5
-Max model node size: 4194368B
-Max data node size: 12424280B
-Total exp-search iterations: 75709669
-Total shifts: 890359253
+Total size: 3.947e+03MB
+Max level: 3
+Max model node size: 2097216B
+Max data node size: 3766176B
+Total exp-search iterations: 75341766
+Total shifts: 642553494

@@ -6,9 +6,7 @@
 # ycsb-200M
 # repeat-200M
 
-./run.sh repeat-200M 200000000 5e6
-./run.sh repeat-200M 200000000 1e7
-./run.sh repeat-200M 200000000 2e7
-./run.sh repeat-200M 200000000 100000000
+./run.sh longitudes-200M 200000000 100000000
+./run.sh longlat-200M 200000000 100000000
 
 
