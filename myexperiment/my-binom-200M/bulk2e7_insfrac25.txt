@@ -1,0 +1,36 @@
+found flag keys_file = ../test_data_used_in_paper/binom-200M.bin.data
+found flag keys_file_type = binary
+found flag init_num_keys = 20000000
+found flag total_num_keys = 200000000
+found flag batch_size = 2000
+found flag insert_frac = 0.25
+found flag lookup_distribution = zipf
+found flag time_limit = 1
+Loading keys from file...
+[Loading keys from file] Done.
+workload start.
+Cumulative stats: 92260 batches, 184520000 ops (138390000 lookups, 46130000 inserts)
+	cumulative throughput:	4.178e+06 lookups/sec,	2.767e+06 inserts/sec,	3.706e+06 ops/sec
+STATS:
+num_keys: 66130000
+num_model_nodes: 57754
+num_data_nodes: 299945
+num_expand_and_scales: 1183654
+num_expand_and_retrains: 681185
+num_downward_splits: 52181
+num_sideways_splits: 160096
+num_downward_split_keys: 17310949
+num_model_node_expansion_pointers: 2181176
+num_model_node_split_pointers: 0
+num_node_lookups: 298388593
+num_lookups: 138390000
+num_inserts: 46130000
+splitting_time: 1.308e+10
+cost_computation_time: 5.220e+09
+
+Total size: 1.637e+03MB
+Max level: 5
+Max model node size: 16777280B
+Max data node size: 16705736B
+Total exp-search iterations: 859964949
+Total shifts: 445384506

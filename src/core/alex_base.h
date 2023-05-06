@@ -68,11 +68,7 @@ class LinearModel {
 
   LinearModel() = default;
   LinearModel(double a, double b) : a_(a), b_(b) {}
-  LinearModel(const LinearModel& other) : a_(other.a_), b_(other.b_) {}
-  LinearModel& operator= (const LinearModel& other){
-    this->a_ = other.a_;this->b_=other.b_;
-    return *this;
-  }
+  explicit LinearModel(const LinearModel& other) : a_(other.a_), b_(other.b_) {}
 
   void expand(double expansion_factor) {
     a_ *= expansion_factor;
@@ -101,24 +97,10 @@ class LinearModelBuilder {
     y_sum_ += static_cast<long double>(y);
     xx_sum_ += static_cast<long double>(x) * x;
     xy_sum_ += static_cast<long double>(x) * y;
-    yy_sum_ += static_cast<long double>(y) * y;
     x_min_ = std::min<T>(x, x_min_);
     x_max_ = std::max<T>(x, x_max_);
     y_min_ = std::min<double>(y, y_min_);
     y_max_ = std::max<double>(y, y_max_);
-  }
-
-  inline void erase(T x, int y) {
-    count_--;
-    x_sum_ -= static_cast<long double>(x);
-    y_sum_ -= static_cast<long double>(y);
-    xx_sum_ -= static_cast<long double>(x) * x;
-    xy_sum_ -= static_cast<long double>(x) * y;
-    yy_sum_ -= static_cast<long double>(y) * y;
-    // x_min_ = std::min<T>(x, x_min_);
-    // x_max_ = std::max<T>(x, x_max_);
-    // y_min_ = std::min<double>(y, y_min_);
-    // y_max_ = std::max<double>(y, y_max_);
   }
 
   void build() {
@@ -150,73 +132,17 @@ class LinearModelBuilder {
     }
   }
 
-  long double loss(){
-    return 
-    model_->a_*(
-      static_cast<long double>(model_->a_)*xx_sum_
-      -2.0*(
-        xy_sum_ - static_cast<long double>(model_->b_) * x_sum_
-      )
-    )
-    + yy_sum_
-    + model_->b_ * (
-      static_cast<long double>(model_->b_) * count_ 
-      - static_cast<long double>(2.0) * y_sum_
-    );
-  }
-
-  double build_and_calc_loss(){
-    build();
-    return loss();
-  }
-
-  int count(){
-    return count_;
-  }
-
-  T x_max(){
-    return x_max_;
-  }
-
  private:
   int count_ = 0;
   long double x_sum_ = 0;
   long double y_sum_ = 0;
   long double xx_sum_ = 0;
   long double xy_sum_ = 0;
-  long double yy_sum_ = 0;
   T x_min_ = std::numeric_limits<T>::max();
   T x_max_ = std::numeric_limits<T>::lowest();
   double y_min_ = std::numeric_limits<double>::max();
   double y_max_ = std::numeric_limits<double>::lowest();
 };
-
-/*** Two Piecewise Linear Model and model builder ***/
-
-template <class T>
-class TwoPiecewiseLinearModel{
- public:
-  LinearModel<T> line_l_,line_r_;
-  T mid_;
- 
-  TwoPiecewiseLinearModel() = default;
-  TwoPiecewiseLinearModel(LinearModel<T> line_l, LinearModel<T> line_r, T mid) : line_l_(line_l), line_r_(line_r), mid_(mid) {}
-  explicit TwoPiecewiseLinearModel(const TwoPiecewiseLinearModel& other) : line_l_(other.line_l_), line_r_(other.line_r_), mid_(other.mid_) {}
-
-  void expand(double expansion_factor) {
-    line_l_.expand(expansion_factor);
-    line_r_.expand(expansion_factor);
-  }
-
-  inline int predict(T key) const {
-    return  key <= mid_ ? line_l_.predict(key) : line_r_.predict(key);
-  }
-
-  inline double predict_double(T key) const {
-    return key <= mid_ ? line_l_.predict_double(key) : line_r_.predict_double(key);
-  }    
-};
-
 
 /*** Comparison ***/
 

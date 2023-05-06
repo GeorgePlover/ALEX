@@ -2,7 +2,7 @@
 import itertools
 import matplotlib.pyplot as plt
 
-DataSets = ["lognormal-190M","longitudes-200M","longlat-200M","ycsb-200M"]
+DataSets = ["lognormal-190M","longitudes-200M","longlat-200M","ycsb-200M", "binom-200M"]
 
 class Record:
     # 类的构造函数，用来初始化对象
