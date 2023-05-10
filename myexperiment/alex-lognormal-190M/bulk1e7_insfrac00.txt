@@ -8,6 +8,9 @@ found flag lookup_distribution = zipf
 found flag time_limit = 1
 Loading keys from file...
 [Loading keys from file] Done.
+workload start.
+Cumulative stats: 326632 batches, 653264000 ops (653264000 lookups, 0 inserts)
+	cumulative throughput:	2.254e+07 lookups/sec,	0.000e+00 inserts/sec,	2.254e+07 ops/sec
 STATS:
 num_keys: 10000000
 num_model_nodes: 11
@@ -19,18 +22,15 @@ num_sideways_splits: 0
 num_downward_split_keys: 0
 num_model_node_expansion_pointers: 0
 num_model_node_split_pointers: 0
-num_node_lookups: 0
-num_lookups: 0
+num_node_lookups: 916589087
+num_lookups: 653264000
 num_inserts: 0
-splitting_time: 0
-cost_computation_time: 0
+splitting_time: 0.000e+00
+cost_computation_time: 0.000e+00
 
-workload start.
-Cumulative stats: 327527 batches, 655054000 ops (655054000 lookups, 0 inserts)
-	cumulative throughput:	2.277e+07 lookups/sec,	0.000e+00 inserts/sec,	2.276e+07 ops/sec
 Total size: 2.239e+02MB
 Max level: 3
 Max model node size: 4194368B
 Max data node size: 4761200B
-Total exp-search iterations: 617477633
+Total exp-search iterations: 615821829
 Total shifts: 0

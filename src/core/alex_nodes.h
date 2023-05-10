@@ -331,12 +331,12 @@ class AlexDataNode : public AlexNode<T, P> {
   int bitmap_size_ = 0;  // number of int64_t in bitmap
 
   // Variables related to resizing (expansions and contractions)
-  static constexpr double kMaxDensity_ = 0.7;  // density after contracting,
+  static constexpr double kMaxDensity_ = 0.8;  // density after contracting,
                                                // also determines the expansion
                                                // threshold
   static constexpr double kInitDensity_ =
-      0.6;  // density of data nodes after bulk loading
-  static constexpr double kMinDensity_ = 0.5;  // density after expanding, also
+      0.7;  // density of data nodes after bulk loading
+  static constexpr double kMinDensity_ = 0.6;  // density after expanding, also
                                                // determines the contraction
                                                // threshold
   double expansion_threshold_ = 1;  // expand after m_num_keys is >= this number

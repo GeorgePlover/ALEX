@@ -9,28 +9,28 @@ found flag time_limit = 1
 Loading keys from file...
 [Loading keys from file] Done.
 workload start.
-Cumulative stats: 208202 batches, 416404000 ops (312303000 lookups, 104101000 inserts)
-	cumulative throughput:	2.280e+07 lookups/sec,	4.466e+06 inserts/sec,	1.125e+07 ops/sec
+Cumulative stats: 201296 batches, 402592000 ops (301944000 lookups, 100648000 inserts)
+	cumulative throughput:	2.047e+07 lookups/sec,	4.417e+06 inserts/sec,	1.073e+07 ops/sec
 STATS:
-num_keys: 114101000
+num_keys: 110648000
 num_model_nodes: 1
 num_data_nodes: 257
-num_expand_and_scales: 224
+num_expand_and_scales: 288
 num_expand_and_retrains: 0
 num_downward_splits: 0
 num_sideways_splits: 240
 num_downward_split_keys: 0
 num_model_node_expansion_pointers: 240
 num_model_node_split_pointers: 0
-num_node_lookups: 416404240
-num_lookups: 312303000
-num_inserts: 104101000
-splitting_time: 3.449e+09
-cost_computation_time: 7.901e+03
+num_node_lookups: 402592240
+num_lookups: 301944000
+num_inserts: 100648000
+splitting_time: 3.326e+09
+cost_computation_time: 8.700e+03
 
-Total size: 2.702e+03MB
+Total size: 2.194e+03MB
 Max level: 1
 Max model node size: 2112B
-Max data node size: 11075408B
-Total exp-search iterations: 36511251
-Total shifts: 14610794
+Max data node size: 8998656B
+Total exp-search iterations: 43138058
+Total shifts: 31578700

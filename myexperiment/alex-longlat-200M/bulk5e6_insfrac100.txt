@@ -8,29 +8,29 @@ found flag lookup_distribution = zipf
 found flag time_limit = 1
 Loading keys from file...
 [Loading keys from file] Done.
-STATS:
-num_keys: 5000000
-num_model_nodes: 1733
-num_data_nodes: 30917
-num_expand_and_scales: 0
-num_expand_and_retrains: 0
-num_downward_splits: 0
-num_sideways_splits: 0
-num_downward_split_keys: 0
-num_model_node_expansion_pointers: 0
-num_model_node_split_pointers: 0
-num_node_lookups: 0
-num_lookups: 0
-num_inserts: 0
-splitting_time: 0
-cost_computation_time: 0
-
 workload start.
-Cumulative stats: 76779 batches, 153558000 ops (0 lookups, 153558000 inserts)
-	cumulative throughput:	0.000e+00 lookups/sec,	2.564e+06 inserts/sec,	2.564e+06 ops/sec
-Total size: 3.515e+03MB
+Cumulative stats: 76234 batches, 152468000 ops (0 lookups, 152468000 inserts)
+	cumulative throughput:	0.000e+00 lookups/sec,	2.546e+06 inserts/sec,	2.546e+06 ops/sec
+STATS:
+num_keys: 157468000
+num_model_nodes: 2584
+num_data_nodes: 53271
+num_expand_and_scales: 210126
+num_expand_and_retrains: 31148
+num_downward_splits: 851
+num_sideways_splits: 21502
+num_downward_split_keys: 2442903
+num_model_node_expansion_pointers: 1860266
+num_model_node_split_pointers: 0
+num_node_lookups: 203851730
+num_lookups: 0
+num_inserts: 152468000
+splitting_time: 3.547e+09
+cost_computation_time: 2.027e+09
+
+Total size: 3.505e+03MB
 Max level: 3
 Max model node size: 16777280B
 Max data node size: 6378392B
-Total exp-search iterations: 118869116
-Total shifts: 1974621820
+Total exp-search iterations: 117670992
+Total shifts: 1944672981

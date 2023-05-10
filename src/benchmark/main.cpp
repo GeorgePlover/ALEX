@@ -13,7 +13,7 @@
 #include "utils.h"
 
 // Modify these if running your own workload
-#define KEY_TYPE unsigned long long
+#define KEY_TYPE double
 #define PAYLOAD_TYPE double
 
 /*

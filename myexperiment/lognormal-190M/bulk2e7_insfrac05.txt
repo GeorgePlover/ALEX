@@ -9,28 +9,28 @@ found flag time_limit = 1
 Loading keys from file...
 [Loading keys from file] Done.
 workload start.
-Cumulative stats: 239987 batches, 479974000 ops (455975300 lookups, 23998700 inserts)
-	cumulative throughput:	2.099e+07 lookups/sec,	4.368e+06 inserts/sec,	1.763e+07 ops/sec
+Cumulative stats: 231506 batches, 463012000 ops (439861400 lookups, 23150600 inserts)
+	cumulative throughput:	1.907e+07 lookups/sec,	4.168e+06 inserts/sec,	1.618e+07 ops/sec
 STATS:
-num_keys: 43998700
-num_model_nodes: 11
-num_data_nodes: 1047
-num_expand_and_scales: 4
+num_keys: 43150600
+num_model_nodes: 13
+num_data_nodes: 1239
+num_expand_and_scales: 5
 num_expand_and_retrains: 1
-num_downward_splits: 3
-num_sideways_splits: 4
-num_downward_split_keys: 955057
+num_downward_splits: 1
+num_sideways_splits: 3
+num_downward_split_keys: 336615
 num_model_node_expansion_pointers: 1048576
 num_model_node_split_pointers: 0
-num_node_lookups: 602791536
-num_lookups: 455975300
-num_inserts: 23998700
-splitting_time: 7.295e+07
-cost_computation_time: 3.917e+03
+num_node_lookups: 605035472
+num_lookups: 439861400
+num_inserts: 23150600
+splitting_time: 4.327e+07
+cost_computation_time: 2.955e+03
 
-Total size: 1.028e+03MB
-Max level: 2
+Total size: 1.056e+03MB
+Max level: 3
 Max model node size: 16777280B
-Max data node size: 16579000B
-Total exp-search iterations: 216082393
-Total shifts: 151559213
+Max data node size: 16086832B
+Total exp-search iterations: 298589500
+Total shifts: 199532053
