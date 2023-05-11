@@ -13,7 +13,7 @@
 #include "utils.h"
 
 // Modify these if running your own workload
-#define KEY_TYPE double
+#define KEY_TYPE unsigned long long
 #define PAYLOAD_TYPE double
 
 /*
@@ -121,13 +121,16 @@ void get_info(alex::Alex<KEY_TYPE,PAYLOAD_TYPE> &index){
   long long total_size=0;
   long long total_lookups=0,total_inserts=0,total_exp_iter=0,total_shifts=0;
   for(auto &i: set_data_node_size)total_size+=i;
+  std::cout<<"Data_Node_Size_avg: "<< static_cast<double>(total_size)/set_data_node_size.size() << "\n";
   for(auto &i: set_model_node_size)total_size+=i;
   for(auto &i: set_num_lookups)total_lookups+=i;
   for(auto &i: set_num_inserts)total_inserts+=i;
   for(auto &i: set_num_iter)total_exp_iter+=i;
   for(auto &i: set_num_shifts)total_shifts+=i;
+  long long total_level=0;for(auto &i: set_level)total_level+=i;
 
   std::cout<<"Total size: "<< static_cast<double>(total_size)/(1024*1024) << "MB\n";
+  std::cout<<"Avg level: "<< static_cast<double>(total_level)/set_level.size() << "\n";
   std::cout<<"Max level: "<< *(--set_level.end()) << "\n";
   if(set_model_node_size.size())std::cout<<"Max model node size: "<< *(--set_model_node_size.end()) << "B\n";
   std::cout<<"Max data node size: "<< *(--set_data_node_size.end()) << "B\n";

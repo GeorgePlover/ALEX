@@ -1,7 +1,7 @@
 found flag keys_file = ../test_data_used_in_paper/binom-200M.bin.data
 found flag keys_file_type = binary
 found flag init_num_keys = 5000000
-found flag total_num_keys = 200000000
+found flag total_num_keys = 400000000
 found flag batch_size = 2000
 found flag insert_frac = 0.05
 found flag lookup_distribution = zipf
@@ -9,28 +9,28 @@ found flag time_limit = 1
 Loading keys from file...
 [Loading keys from file] Done.
 workload start.
-Cumulative stats: 122689 batches, 245378000 ops (233109100 lookups, 12268900 inserts)
-	cumulative throughput:	5.558e+06 lookups/sec,	8.634e+06 inserts/sec,	5.659e+06 ops/sec
+Cumulative stats: 105553 batches, 211106000 ops (200550700 lookups, 10555300 inserts)
+	cumulative throughput:	4.997e+06 lookups/sec,	2.330e+06 inserts/sec,	4.726e+06 ops/sec
 STATS:
-num_keys: 17268900
-num_model_nodes: 6485
-num_data_nodes: 55402
-num_expand_and_scales: 51994
-num_expand_and_retrains: 57734
-num_downward_splits: 236
-num_sideways_splits: 13176
-num_downward_split_keys: 83762
-num_model_node_expansion_pointers: 1835122
+num_keys: 15555300
+num_model_nodes: 6462
+num_data_nodes: 69317
+num_expand_and_scales: 238152
+num_expand_and_retrains: 144421
+num_downward_splits: 5469
+num_sideways_splits: 45355
+num_downward_split_keys: 2127378
+num_model_node_expansion_pointers: 2110104
 num_model_node_split_pointers: 0
-num_node_lookups: 302718613
-num_lookups: 233109100
-num_inserts: 12268900
-splitting_time: 6.282e+08
-cost_computation_time: 2.641e+08
+num_node_lookups: 310593849
+num_lookups: 200550700
+num_inserts: 10555300
+splitting_time: 3.598e+09
+cost_computation_time: 1.281e+09
 
-Total size: 5.099e+02MB
+Total size: 3.973e+02MB
 Max level: 4
 Max model node size: 16777280B
-Max data node size: 8305328B
-Total exp-search iterations: 1701882236
-Total shifts: 32854321
+Max data node size: 8348376B
+Total exp-search iterations: 1271271507
+Total shifts: 122271441
