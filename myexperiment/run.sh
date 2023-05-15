@@ -36,81 +36,81 @@ echo bulk_${init_key}
 
 echo 1
 
-# ../build/benchmark \
-# --keys_file=../test_data_used_in_paper/"${name}".bin.data \
-# --keys_file_type=binary \
-# --init_num_keys="${int_key}" \
-# --total_num_keys="${total_key}" \
-# --batch_size=2000 \
-# --insert_frac=0.05 \
-# --lookup_distribution=zipf \
-# --time_limit=1 \
-# > ./${name}/bulk${init_key}_insfrac05.txt
+../build/benchmark \
+--keys_file=../test_data_used_in_paper/"${name}".bin.data \
+--keys_file_type=binary \
+--init_num_keys="${int_key}" \
+--total_num_keys="${total_key}" \
+--batch_size=2000 \
+--insert_frac=0.05 \
+--lookup_distribution=zipf \
+--time_limit=1 \
+> ./${name}/bulk${init_key}_insfrac05.txt
 
-# echo 2
+echo 2
 
-# ../build/benchmark \
-# --keys_file=../test_data_used_in_paper/"${name}".bin.data \
-# --keys_file_type=binary \
-# --init_num_keys="${int_key}" \
-# --total_num_keys="${total_key}" \
-# --batch_size=2000 \
-# --insert_frac=0.25 \
-# --lookup_distribution=zipf \
-# --time_limit=1 \
-# > ./${name}/bulk${init_key}_insfrac25.txt
+../build/benchmark \
+--keys_file=../test_data_used_in_paper/"${name}".bin.data \
+--keys_file_type=binary \
+--init_num_keys="${int_key}" \
+--total_num_keys="${total_key}" \
+--batch_size=2000 \
+--insert_frac=0.25 \
+--lookup_distribution=zipf \
+--time_limit=1 \
+> ./${name}/bulk${init_key}_insfrac25.txt
 
-# echo 3
+echo 3
 
-# ../build/benchmark \
-# --keys_file=../test_data_used_in_paper/"${name}".bin.data \
-# --keys_file_type=binary \
-# --init_num_keys="${int_key}" \
-# --total_num_keys="${total_key}" \
-# --batch_size=2000 \
-# --insert_frac=0.50 \
-# --lookup_distribution=zipf \
-# --time_limit=1 \
-# > ./${name}/bulk${init_key}_insfrac50.txt
+../build/benchmark \
+--keys_file=../test_data_used_in_paper/"${name}".bin.data \
+--keys_file_type=binary \
+--init_num_keys="${int_key}" \
+--total_num_keys="${total_key}" \
+--batch_size=2000 \
+--insert_frac=0.50 \
+--lookup_distribution=zipf \
+--time_limit=1 \
+> ./${name}/bulk${init_key}_insfrac50.txt
 
-# echo 4
+echo 4
 
-# ../build/benchmark \
-# --keys_file=../test_data_used_in_paper/"${name}".bin.data \
-# --keys_file_type=binary \
-# --init_num_keys="${int_key}" \
-# --total_num_keys="${total_key}" \
-# --batch_size=2000 \
-# --insert_frac=0.75 \
-# --lookup_distribution=zipf \
-# --time_limit=1 \
-# > ./${name}/bulk${init_key}_insfrac75.txt
+../build/benchmark \
+--keys_file=../test_data_used_in_paper/"${name}".bin.data \
+--keys_file_type=binary \
+--init_num_keys="${int_key}" \
+--total_num_keys="${total_key}" \
+--batch_size=2000 \
+--insert_frac=0.75 \
+--lookup_distribution=zipf \
+--time_limit=1 \
+> ./${name}/bulk${init_key}_insfrac75.txt
 
-# echo 5
+echo 5
 
-# ../build/benchmark \
-# --keys_file=../test_data_used_in_paper/"${name}".bin.data \
-# --keys_file_type=binary \
-# --init_num_keys="${int_key}" \
-# --total_num_keys="${total_key}" \
-# --batch_size=2000 \
-# --insert_frac=0.95 \
-# --lookup_distribution=zipf \
-# --time_limit=1 \
-# > ./${name}/bulk${init_key}_insfrac95.txt
+../build/benchmark \
+--keys_file=../test_data_used_in_paper/"${name}".bin.data \
+--keys_file_type=binary \
+--init_num_keys="${int_key}" \
+--total_num_keys="${total_key}" \
+--batch_size=2000 \
+--insert_frac=0.95 \
+--lookup_distribution=zipf \
+--time_limit=1 \
+> ./${name}/bulk${init_key}_insfrac95.txt
 
-# echo 6
+echo 6
 
-# ../build/benchmark \
-# --keys_file=../test_data_used_in_paper/"${name}".bin.data \
-# --keys_file_type=binary \
-# --init_num_keys="${int_key}" \
-# --total_num_keys="${total_key}" \
-# --batch_size=2000 \
-# --insert_frac=1.00 \
-# --lookup_distribution=zipf \
-# --time_limit=1 \
-# > ./${name}/bulk${init_key}_insfrac100.txt
+../build/benchmark \
+--keys_file=../test_data_used_in_paper/"${name}".bin.data \
+--keys_file_type=binary \
+--init_num_keys="${int_key}" \
+--total_num_keys="${total_key}" \
+--batch_size=2000 \
+--insert_frac=1.00 \
+--lookup_distribution=zipf \
+--time_limit=1 \
+> ./${name}/bulk${init_key}_insfrac100.txt
 
-# echo 7
-# echo done!
+echo 7
+echo done!

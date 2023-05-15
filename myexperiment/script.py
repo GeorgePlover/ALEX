@@ -130,7 +130,7 @@ plt.savefig("chart.png")
 
 # 单项对比
 for dataset,bulknum,insfrac in itertools.product(DataSets, BulkNum, InsertFrac):
-    if(bulknum != "1e7" or insfrac != "95"):
+    if(bulknum != "1e7" or insfrac != "00"):
         continue
     x = Filter(Records,"my",dataset,int(float(bulknum)),float(insfrac)*0.01)[0].throughput
     y = Filter(Records,"alex",dataset,int(float(bulknum)),float(insfrac)*0.01)[0].throughput
