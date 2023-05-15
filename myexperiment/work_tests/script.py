@@ -8,7 +8,11 @@ class Record:
     # 类的构造函数，用来初始化对象
     def __init__(self, id, core_name, dataset, 
                  num_bulk, insert_frac, throughput, memory, 
-                 num_model_nodes, num_data_nodes, max_level):
+                 num_model_nodes, num_data_nodes, max_level,
+                 num_expand_and_scales,num_expand_and_retrains,
+                 num_downward_splits,num_sideways_splits,
+                 num_downward_split_keys,num_node_lookups,
+                 splitting_time,cost_computation_time,exp_num,total_shifts):
         self.id = id
         self.core_name = core_name
         self.dataset = dataset
@@ -19,6 +23,16 @@ class Record:
         self.num_model_nodes = num_model_nodes
         self.num_data_nodes = num_data_nodes
         self.max_level = max_level
+        self.num_expand_and_scales = num_expand_and_scales
+        self.num_expand_and_retrains = num_expand_and_retrains
+        self.num_downward_splits = num_downward_splits
+        self.num_sideways_splits = num_sideways_splits
+        self.num_downward_split_keys = num_downward_split_keys
+        self.num_node_lookups = num_node_lookups
+        self.splitting_time = splitting_time
+        self.cost_computation_time = cost_computation_time
+        self.exp_num = exp_num
+        self.total_shifts = total_shifts
 
     def __str__(self):
         result = []
@@ -34,6 +48,26 @@ def Get_Record_from_File(filename, id, core_name):
         for ds in DataSets:
             if ds in line:
                 dataset = ds
+        if "Total shifts" in line:
+            total_shifts = int(line.split()[-1])
+        if "num_expand_and_scales" in line:
+            num_expand_and_scales = int(line.split()[-1])
+        if "num_expand_and_retrains" in line:
+            num_expand_and_retrains = int(line.split()[-1])
+        if "num_downward_splits" in line:
+            num_downward_splits = int(line.split()[-1])
+        if "num_sideways_splits" in line:
+            num_sideways_splits = int(line.split()[-1])
+        if "num_downward_split_keys" in line:
+            num_downward_split_keys = int(line.split()[-1])
+        if "num_node_lookups" in line:
+            num_node_lookups = int(line.split()[-1])
+        if "splitting_time" in line:
+            splitting_time = float(line.split()[-1])
+        if "cost_computation_time" in line:
+            cost_computation_time = float(line.split()[-1])
+        if "Total exp-search iterations" in line:
+            exp_num = int(line.split()[-1])
         if "init_num_keys" in line:
             num_bulk = int(line.split()[-1])
         if "insert_frac" in line:
@@ -50,7 +84,10 @@ def Get_Record_from_File(filename, id, core_name):
             max_level = int(line.split()[-1])
     return Record(id, core_name, dataset, num_bulk, 
                   insert_frac, throughput, memory, 
-                  num_model_nodes, num_data_nodes, max_level) 
+                  num_model_nodes, num_data_nodes, max_level,num_expand_and_scales,num_expand_and_retrains,
+                  num_downward_splits,num_sideways_splits,
+                  num_downward_split_keys,num_node_lookups,
+                  splitting_time,cost_computation_time,exp_num,total_shifts) 
 
 def Filter(Records: list , core_name: str ,dataset: str, bulknum: int, insfrac: float):
     ret=[]
@@ -70,9 +107,9 @@ def Draw(Records: list , dataset: str, bulknum: int, insfrac: list, outfile = "c
     for record in Records:
         if record.dataset == dataset and record.num_bulk == bulknum:
             if record.core_name == "alex":
-                alex.append(record.throughput)
+                alex.append(1e8/record.throughput)
             else:
-                my.append(record.throughput)
+                my.append(1e8/record.throughput)
     
     x = range(len(insfrac))
     ins_row = insfrac.copy()
@@ -90,7 +127,7 @@ def Draw(Records: list , dataset: str, bulknum: int, insfrac: list, outfile = "c
 
     # 添加图例
     plt.legend()
-    plt.ylabel("Throughput (op/sec)", labelpad=-40, y=1.06, rotation=0)
+    plt.ylabel("total_time", labelpad=-40, y=1.06, rotation=0)
     plt.xlabel("Percentage of Insert", x=0.80)
     plt.title(dataset[:-5],fontsize=30)
 
@@ -98,9 +135,9 @@ def Draw(Records: list , dataset: str, bulknum: int, insfrac: list, outfile = "c
     #plt.savefig(outfile)
     
 
-file_path = "/home/nsh/ALEX/myexperiment/"
+file_path = "/home/nsh/ALEX/myexperiment/work_tests/"
 CoreNames = ["my", "alex"]
-BulkNum = ["5e6", "1e7", "2e7", "100000000"]
+BulkNum = ["1e7"]
 InsertFrac = ["00", "05", "25", "50", "75", "95", "100"]
 
 Records = []
@@ -126,12 +163,12 @@ for dataset in DataSets:
             Draw(Records,dataset,bnum,InsertFrac,dataset+"&"+str(bnum)+"chart.png")
 
 plt.tight_layout() # 自动调整子图间距，解决重叠问题
-plt.savefig("chart.png")
+plt.savefig("total_time.png")
 
 # 单项对比
 for dataset,bulknum,insfrac in itertools.product(DataSets, BulkNum, InsertFrac):
-    if(bulknum != "1e7" or insfrac != "100"):
+    if(bulknum != "1e7" or insfrac != "00"):
         continue
-    x = Filter(Records,"my",dataset,int(float(bulknum)),float(insfrac)*0.01)[0].throughput
-    y = Filter(Records,"alex",dataset,int(float(bulknum)),float(insfrac)*0.01)[0].throughput
+    x = Filter(Records,"my",dataset,int(float(bulknum)),float(insfrac)*0.01)[0].exp_num
+    y = Filter(Records,"alex",dataset,int(float(bulknum)),float(insfrac)*0.01)[0].exp_num
     print(dataset,bulknum,insfrac,(x/y-1.0)*100,"%")
