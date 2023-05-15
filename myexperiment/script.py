@@ -120,7 +120,7 @@ id=0
 for dataset in DataSets:
     for num in BulkNum:
         bnum = int(float(num))
-        if(bnum == 20000000):
+        if(bnum == 10000000):
             id=id+1
             plt.subplot(2,3,id)
             Draw(Records,dataset,bnum,InsertFrac,dataset+"&"+str(bnum)+"chart.png")
