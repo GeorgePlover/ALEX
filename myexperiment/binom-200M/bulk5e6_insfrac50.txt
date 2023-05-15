@@ -9,30 +9,30 @@ found flag time_limit = 1
 Loading keys from file...
 [Loading keys from file] Done.
 workload start.
-Cumulative stats: 103417 batches, 206834000 ops (103417000 lookups, 103417000 inserts)
-	cumulative throughput:	8.973e+06 lookups/sec,	2.558e+06 inserts/sec,	3.981e+06 ops/sec
+Cumulative stats: 80814 batches, 161628000 ops (80814000 lookups, 80814000 inserts)
+	cumulative throughput:	6.231e+06 lookups/sec,	1.989e+06 inserts/sec,	3.015e+06 ops/sec
 STATS:
-num_keys: 108417000
-num_model_nodes: 96
-num_data_nodes: 12376
-num_expand_and_scales: 20572
-num_expand_and_retrains: 2730
-num_downward_splits: 0
-num_sideways_splits: 9521
-num_downward_split_keys: 0
-num_model_node_expansion_pointers: 2197076
+num_keys: 85814000
+num_model_nodes: 2028
+num_data_nodes: 51866
+num_expand_and_scales: 110258
+num_expand_and_retrains: 15951
+num_downward_splits: 229
+num_sideways_splits: 30693
+num_downward_split_keys: 75932
+num_model_node_expansion_pointers: 2057460
 num_model_node_split_pointers: 0
-num_node_lookups: 243072820
-num_lookups: 103417000
-num_inserts: 103417000
-splitting_time: 3.268e+09
-cost_computation_time: 7.929e+08
+num_node_lookups: 177267570
+num_lookups: 80814000
+num_inserts: 80814000
+splitting_time: 6.080e+09
+cost_computation_time: 3.777e+09
 
-Data_Node_Size_avg: 2.250e+05
-Total size: 2.673e+03MB
-Avg level: 1.746e+00
+Data_Node_Size_avg: 4.534e+04
+Total size: 2.259e+03MB
+Avg level: 1.252e+00
 Max level: 3
 Max model node size: 16777280B
-Max data node size: 16731120B
-Total exp-search iterations: 414223972
-Total shifts: 2272311841
+Max data node size: 1306392B
+Total exp-search iterations: 468678935
+Total shifts: 2210391814

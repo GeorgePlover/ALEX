@@ -198,8 +198,10 @@ int main(int argc, char* argv[]) {
   std::cout << "workload start.\n";
   std::cout << std::scientific;
   std::cout << std::setprecision(3);
+  int up_batch = (total_num_keys - init_num_keys)/batch_size;
   while (true) {
     batch_no++;
+    if(up_batch<batch_no)break;
 #ifdef DEBUG
     std::cout<<"batch_number: "<<batch_no<<std::endl;
 #endif

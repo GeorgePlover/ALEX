@@ -14,9 +14,9 @@
 # ./run.sh longlat-200M 200000000 1e7
 # ./run.sh longlat-200M 200000000 2e7
 
-./run.sh binom-200M 400000000 5e6
-./run.sh binom-200M 400000000 1e7
-./run.sh binom-200M 400000000 2e7
+# ./run.sh binom-200M 400000000 5e6
+# ./run.sh binom-200M 400000000 1e7
+# ./run.sh binom-200M 400000000 2e7
 
 # ./run.sh ycsb-200M 200000000 5e6
 # ./run.sh ycsb-200M 200000000 1e7
@@ -25,4 +25,13 @@
 # ./run.sh lognormal-190M 190000000 5e6
 # ./run.sh lognormal-190M 190000000 1e7
 # ./run.sh lognormal-190M 190000000 2e7
+
+# ------------------------------------------------------------
+
+# ./run_notime.sh longlat-200M 110000000 1e7
+# ./run_notime.sh longitudes-200M 110000000 1e7
+
+./run_notime.sh binom-200M 110000000 1e7
+./run_notime.sh lognormal-190M 110000000 1e7
+./run_notime.sh ycsb-200M 110000000 1e7
 

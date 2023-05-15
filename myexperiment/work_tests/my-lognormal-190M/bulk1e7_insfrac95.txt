@@ -1,0 +1,37 @@
+found flag keys_file = ../test_data_used_in_paper/lognormal-190M.bin.data
+found flag keys_file_type = binary
+found flag init_num_keys = 10000000
+found flag total_num_keys = 110000000
+found flag batch_size = 2000
+found flag insert_frac = 0.95
+found flag lookup_distribution = zipf
+Loading keys from file...
+[Loading keys from file] Done.
+workload start.
+Cumulative stats: 50001 batches, 100000000 ops (5000000 lookups, 95000000 inserts)
+	cumulative throughput:	1.815e+07 lookups/sec,	4.221e+06 inserts/sec,	4.389e+06 ops/sec
+STATS:
+num_keys: 105000000
+num_model_nodes: 12
+num_data_nodes: 672
+num_expand_and_scales: 479
+num_expand_and_retrains: 47
+num_downward_splits: 8
+num_sideways_splits: 112
+num_downward_split_keys: 4728726
+num_model_node_expansion_pointers: 1835224
+num_model_node_split_pointers: 0
+num_node_lookups: 134729020
+num_lookups: 5000000
+num_inserts: 95000000
+splitting_time: 2.767e+09
+cost_computation_time: 1.313e+09
+
+Data_Node_Size_avg: 4.223e+06
+Total size: 2.718e+03MB
+Avg level: 1.165e+00
+Max level: 2
+Max model node size: 16777280B
+Max data node size: 16770464B
+Total exp-search iterations: 35727146
+Total shifts: 68897960
